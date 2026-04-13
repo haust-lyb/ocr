@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR 布局可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+        .upload-section {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 2px dashed #0f3460;
+        }
+        .upload-section input[type="file"] {
+            display: none;
+        }
+        .upload-label {
+            display: inline-block;
+            background: #00d4ff;
+            color: #1a1a2e;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .upload-label:hover {
+            background: #00b4d8;
+        }
+        .viewer {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .image-container {
+            flex: 1;
+            min-width: 600px;
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+        }
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .image-wrapper img {
+            max-width: 100%;
+            display: block;
+        }
+        .boxes-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .box {
+            position: absolute;
+            border: 2px solid;
+            border-radius: 4px;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.6;
+        }
+        .box:hover {
+            opacity: 1;
+            border-width: 3px;
+            z-index: 10;
+        }
+        .box.text { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.2); }
+        .box.image { border-color: #4ecdc4; background: rgba(78, 205, 196, 0.2); }
+        .box.header { border-color: #ffe66d; background: rgba(255, 230, 109, 0.2); }
+        .box.number { border-color: #c792ea; background: rgba(199, 146, 234, 0.2); }
+        .box.table { border-color: #89ddff; background: rgba(137, 221, 255, 0.2); }
+        .box.default { border-color: #82aaff; background: rgba(130, 170, 255, 0.2); }
+
+        .tooltip {
+            position: fixed;
+            background: #0f3460;
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            padding: 12px 16px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .tooltip.show {
+            display: block;
+        }
+        .tooltip .label {
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #0f3460;
+            padding-bottom: 8px;
+        }
+        .tooltip .content {
+            color: #eee;
+        }
+
+        .legend {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 200px;
+        }
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #00d4ff;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 2px solid;
+        }
+        .legend-color.text { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.3); }
+        .legend-color.image { border-color: #4ecdc4; background: rgba(78, 205, 196, 0.3); }
+        .legend-color.header { border-color: #ffe66d; background: rgba(255, 230, 109, 0.3); }
+        .legend-color.number { border-color: #c792ea; background: rgba(199, 146, 234, 0.3); }
+        .legend-color.table { border-color: #89ddff; background: rgba(137, 221, 255, 0.3); }
+        .legend-color.chart { border-color: #ff9f43; background: rgba(255, 159, 67, 0.3); }
+        .legend-color.figure_title { border-color: #54a0ff; background: rgba(84, 160, 255, 0.3); }
+        .legend-color.footer { border-color: #5f27cd; background: rgba(95, 39, 205, 0.3); }
+        .legend-color.footer_image { border-color: #01a3a4; background: rgba(1, 163, 164, 0.3); }
+        .legend-color.formula_number { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.3); }
+        .legend-color.header_image { border-color: #00d2d3; background: rgba(0, 210, 211, 0.3); }
+        .legend-color.display_formula { border-color: #ee5a24; background: rgba(238, 90, 36, 0.3); }
+        .legend-color.abstract { border-color: #0abde3; background: rgba(10, 189, 227, 0.3); }
+        .legend-color.algorithm { border-color: #10ac84; background: rgba(16, 172, 132, 0.3); }
+        .legend-color.aside_text { border-color: #feca57; background: rgba(254, 202, 87, 0.3); }
+        .legend-color.content { border-color: #ff9ff3; background: rgba(255, 159, 243, 0.3); }
+        .legend-color.doc_title { border-color: #00d4ff; background: rgba(0, 212, 255, 0.3); }
+        .legend-color.footnote { border-color: #a29bfe; background: rgba(162, 155, 254, 0.3); }
+        .legend-color.inline_formula { border-color: #fd79a8; background: rgba(253, 121, 168, 0.3); }
+        .legend-color.paragraph_title { border-color: #55a3ff; background: rgba(85, 163, 255, 0.3); }
+        .legend-color.reference { border-color: #b2bec3; background: rgba(178, 190, 195, 0.3); }
+        .legend-color.reference_content { border-color: #636e72; background: rgba(99, 110, 114, 0.3); }
+        .legend-color.seal { border-color: #d63031; background: rgba(214, 48, 49, 0.3); }
+        .legend-color.vertical_text { border-color: #e17055; background: rgba(225, 112, 85, 0.3); }
+        .legend-color.vision_footnote { border-color: #74b9ff; background: rgba(116, 185, 255, 0.3); }
+        .legend-color.default { border-color: #82aaff; background: rgba(130, 170, 255, 0.3); }
+
+        .stats {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #0f3460;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .toggle-btn {
+            background: #4ecdc4;
+            color: #1a1a2e;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 15px;
+        }
+        .toggle-btn:hover { background: #3dbdb5; }
+        .toggle-btn.active { background: #ffe66d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OCR 布局可视化工具</h1>
+
+        <div id="infoBar" style="display: none; background: #16213e; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+            <span id="recordInfo" style="color: #888;"></span>
+            <button id="toggleBtn" class="toggle-btn" onclick="toggleImage()">查看版面分析图</button>
+            <a href="/console" style="color: #00d4ff; margin-left: 20px;">返回列表</a>
+        </div>
+
+        <div class="viewer" id="viewer" style="display: none;">
+            <div class="image-container">
+                <div class="image-wrapper" id="imageWrapper">
+                    <img id="mainImage" src="" alt="原图">
+                    <div class="boxes-overlay" id="boxesOverlay"></div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <h3>图例</h3>
+                <div class="legend-item"><div class="legend-color text"></div><span>文本 (text)</span></div>
+                <div class="legend-item"><div class="legend-color image"></div><span>图片 (image)</span></div>
+                <div class="legend-item"><div class="legend-color header"></div><span>标题 (header)</span></div>
+                <div class="legend-item"><div class="legend-color number"></div><span>数字 (number)</span></div>
+                <div class="legend-item"><div class="legend-color table"></div><span>表格 (table)</span></div>
+                <div class="legend-item"><div class="legend-color chart"></div><span>图表 (chart)</span></div>
+                <div class="legend-item"><div class="legend-color figure_title"></div><span>图注 (figure_title)</span></div>
+                <div class="legend-item"><div class="legend-color footer"></div><span>页脚 (footer)</span></div>
+                <div class="legend-item"><div class="legend-color footer_image"></div><span>页脚图片 (footer_image)</span></div>
+                <div class="legend-item"><div class="legend-color formula_number"></div><span>公式编号 (formula_number)</span></div>
+                <div class="legend-item"><div class="legend-color header_image"></div><span>页眉图片 (header_image)</span></div>
+                <div class="legend-item"><div class="legend-color display_formula"></div><span>公式 (display_formula)</span></div>
+                <div class="legend-item"><div class="legend-color abstract"></div><span>摘要 (abstract)</span></div>
+                <div class="legend-item"><div class="legend-color algorithm"></div><span>算法 (algorithm)</span></div>
+                <div class="legend-item"><div class="legend-color aside_text"></div><span>旁白 (aside_text)</span></div>
+                <div class="legend-item"><div class="legend-color content"></div><span>正文 (content)</span></div>
+                <div class="legend-item"><div class="legend-color doc_title"></div><span>文档标题 (doc_title)</span></div>
+                <div class="legend-item"><div class="legend-color footnote"></div><span>脚注 (footnote)</span></div>
+                <div class="legend-item"><div class="legend-color inline_formula"></div><span>行内公式 (inline_formula)</span></div>
+                <div class="legend-item"><div class="legend-color paragraph_title"></div><span>段落标题 (paragraph_title)</span></div>
+                <div class="legend-item"><div class="legend-color reference"></div><span>参考文献 (reference)</span></div>
+                <div class="legend-item"><div class="legend-color reference_content"></div><span>参考文献内容 (reference_content)</span></div>
+                <div class="legend-item"><div class="legend-color seal"></div><span>印章 (seal)</span></div>
+                <div class="legend-item"><div class="legend-color vertical_text"></div><span>竖排文本 (vertical_text)</span></div>
+                <div class="legend-item"><div class="legend-color vision_footnote"></div><span>脚注 (vision_footnote)</span></div>
+
+                <div class="stats" id="stats"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+        <div class="label" id="tooltipLabel"></div>
+        <div class="content" id="tooltipContent"></div>
+    </div>
+
+    <script>
+        let currentData = null;
+        let imageScale = 1;
+        let originalImageSrc = null;
+        let annotatedImageSrc = null;
+        let showingAnnotated = true;
+
+        function renderBoxes(data) {
+            currentData = data;
+            const overlay = document.getElementById('boxesOverlay');
+            const img = document.getElementById('mainImage');
+            overlay.innerHTML = '';
+
+            // 等待图片加载完成
+            if (!img.naturalWidth) {
+                img.onload = () => renderBoxes(data);
+                return;
+            }
+
+            // 计算缩放比例
+            imageScale = img.offsetWidth / img.naturalWidth;
+
+            // 从 result_json 字段获取 boxes，格式为 [{res: {boxes: [...]}}]
+            const boxes = data[0]?.res?.boxes || [];
+            const stats = {};
+
+            boxes.forEach((box, index) => {
+                const label = box.label || 'unknown';
+                stats[label] = (stats[label] || 0) + 1;
+
+                const coord = box.coordinate;
+                if (!coord || coord.length < 4) return;
+
+                const div = document.createElement('div');
+                div.className = `box ${label}`;
+                div.style.left = (coord[0] * imageScale) + 'px';
+                div.style.top = (coord[1] * imageScale) + 'px';
+                div.style.width = ((coord[2] - coord[0]) * imageScale) + 'px';
+                div.style.height = ((coord[3] - coord[1]) * imageScale) + 'px';
+
+                // 点击显示 OCR 内容
+                div.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showTooltip(div, box, label, index);
+                });
+
+                overlay.appendChild(div);
+            });
+
+            // 更新统计
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = '<h3>统计</h3>';
+            Object.entries(stats).forEach(([label, count]) => {
+                statsDiv.innerHTML += `<div class="stat-item"><span>${label}</span><span>${count}</span></div>`;
+            });
+        }
+
+        function showTooltip(element, box, label, index) {
+            const tooltip = document.getElementById('tooltip');
+            const tooltipContent = document.getElementById('tooltipContent');
+            const tooltipLabel = document.getElementById('tooltipLabel');
+            const rect = element.getBoundingClientRect();
+
+            // 显示标签和置信度
+            const score = box.score ? (box.score * 100).toFixed(1) + '%' : 'N/A';
+            tooltipLabel.textContent = `${label.toUpperCase()} #${index + 1} (置信度: ${score})`;
+
+            // 如果有提取的图片，显示图片
+            if (box.extracted_image) {
+                tooltipContent.innerHTML = `<img src="/image/${box.extracted_image}" style="max-width: 100%; border-radius: 4px;">`;
+            } else if (box.ocr_text) {
+                tooltipContent.textContent = box.ocr_text;
+            } else if (box.ocr_error) {
+                tooltipContent.innerHTML = `<span style="color: #ff6b6b;">OCR 失败: ${box.ocr_error}</span>`;
+            } else if (box.extract_error) {
+                tooltipContent.innerHTML = `<span style="color: #ff6b6b;">图片提取失败: ${box.extract_error}</span>`;
+            } else {
+                tooltipContent.textContent = '无内容';
+            }
+
+            // 定位 tooltip
+            let left = rect.right + 10;
+            let top = rect.top;
+
+            // 边界检测
+            if (left + 400 > window.innerWidth) {
+                left = rect.left - 410;
+            }
+            if (top + 300 > window.innerHeight) {
+                top = window.innerHeight - 310;
+            }
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.classList.add('show');
+
+            // 点击其他地方关闭
+            setTimeout(() => {
+                document.addEventListener('click', hideTooltip, { once: true });
+            }, 0);
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.remove('show');
+        }
+
+        function toggleImage() {
+            const img = document.getElementById('mainImage');
+            const btn = document.getElementById('toggleBtn');
+
+            if (showingAnnotated) {
+                img.src = originalImageSrc;
+                btn.textContent = '查看版面分析图';
+                btn.classList.remove('active');
+            } else {
+                img.src = annotatedImageSrc;
+                btn.textContent = '查看原图';
+                btn.classList.add('active');
+            }
+            showingAnnotated = !showingAnnotated;
+        }
+
+        // 页面加载时根据 ID 加载数据
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const recId = params.get('id');
+
+            if (!recId) {
+                document.body.innerHTML = '<div style="text-align:center;padding:50px;color:#888;">缺少 ID 参数</div>';
+                return;
+            }
+
+            loadById(recId);
+        };
+
+        async function loadById(recId) {
+            try {
+                const res = await fetch(`/view/${recId}`);
+                if (!res.ok) throw new Error('识别结果不存在');
+
+                const data = await res.json();
+                document.getElementById('recordInfo').textContent = `${data.image_name} | ID: ${data.id} | 状态: ${data.status === 'success' ? '成功' : data.status}`;
+                document.getElementById('infoBar').style.display = 'block';
+
+                // 存储图片路径
+                originalImageSrc = `/image/${encodeURIComponent(data.image_path)}`;
+                annotatedImageSrc = data.annotated_image_path
+                    ? `/image/${encodeURIComponent(data.annotated_image_path)}`
+                    : originalImageSrc;
+
+                // 默认显示版面分析图
+                document.getElementById('mainImage').src = annotatedImageSrc;
+                document.getElementById('toggleBtn').textContent = '查看原图';
+                document.getElementById('toggleBtn').classList.add('active');
+                showingAnnotated = true;
+
+                document.getElementById('mainImage').onload = () => {
+                    document.getElementById('viewer').style.display = 'flex';
+                    imageScale = document.getElementById('mainImage').offsetWidth / document.getElementById('mainImage').naturalWidth;
+                    renderBoxes(data.result_json);
+                };
+            } catch (err) {
+                alert('加载失败: ' + err);
+            }
+        }
+    </script>
+</body>
+</html>

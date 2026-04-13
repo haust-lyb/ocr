@@ -4,15 +4,18 @@ from paddlex import create_model
 model = create_model("PP-DocLayoutV3")
 
 
-def run_layout(image):
+def run_layout(image, saveAnnotatedPath: str = None):
     """
     image: numpy array (cv2 format)
+    saveAnnotatedPath: 可选，保存带标注的图片路径
     """
     results = model.predict(image)
 
     output = []
+    result_obj = None
 
     for r in results:
+        result_obj = r
         # PaddleX result 通常有这些字段
         if hasattr(r, "json"):
             output.append(r.json)
@@ -21,5 +24,9 @@ def run_layout(image):
         else:
             # fallback
             output.append(str(r))
+
+    # 保存带标注的图片
+    if saveAnnotatedPath and result_obj:
+        result_obj.save_to_img(saveAnnotatedPath)
 
     return output

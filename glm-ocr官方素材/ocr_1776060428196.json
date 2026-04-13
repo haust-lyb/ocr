@@ -1,0 +1,355 @@
+{
+  "requestId": "layout-parsing-1776060311947-954411",
+  "errorMsg": null,
+  "id": "20260413140511ff410755ca0446d9",
+  "created": 1776060313,
+  "model": "glm-ocr",
+  "mdResults": "<table><thead><tr><th>method</th><th>top-1 err.</th><th>top-5 err.</th></tr></thead><tbody><tr><td>VGG [41] (ILSVRC'14)</td><td>-</td><td>8.43†</td></tr><tr><td>GoogLeNet [44] (ILSVRC'14)</td><td>-</td><td>7.89</td></tr><tr><td>VGG [41] (v5)</td><td>24.4</td><td>7.1</td></tr><tr><td>PReLU-net [13]</td><td>21.59</td><td>5.71</td></tr><tr><td>BN-inception [16]</td><td>21.99</td><td>5.81</td></tr><tr><td>ResNet-34 B</td><td>21.84</td><td>5.71</td></tr><tr><td>ResNet-34 C</td><td>21.53</td><td>5.60</td></tr><tr><td>ResNet-50</td><td>20.74</td><td>5.25</td></tr><tr><td>ResNet-101</td><td>19.87</td><td>4.60</td></tr><tr><td>ResNet-152</td><td>19.38</td><td>4.49</td></tr></tbody></table>\n\n<div align=\"center\">\n\nTable 4. Error rates (%) of single-model results on the ImageNet validation set (except $ ^{ \\dagger} $ reported on the test set).\n\n</div>\n\n## User: Convert it to the markdown format.\n\n| ------- | ------- | ------- | ------- |\n\n| VGG [41] (ILSVRC'14) | - | 8.43 | |\n\n| GoogLeNet [44] (ILSVRC'14) | - | 7.89 | |\n\n| VGG [41] (v5) | 24.4 | 7.1 | |\n\n| PRELU-net [13] | 21.59 | 5.71 | |\n\n| BN-inception [16] | 21.99 | 5.81 | |\n\n| ResNet-34 B | 21.84 | 5.71 | |\n\n| ResNet-34 C | 21.53 | 5.60 | |\n\n| ResNet-50 | 20.74 | 5.25 | |\n\n| ResNet-101 | 19.87 | 4.60 | |\n\n| ResNet-152 | 19.38 | 4.49 | |\n\n<div align=\"center\">\n\nDataset 1\n\n</div>\n\n<table><thead><tr><th>Department</th><th>Name</th><th>Salary</th></tr></thead><tbody><tr><td>Administration</td><td>Emily</td><td>$2,000</td></tr><tr><td>Finance</td><td>Nick</td><td>$1,800</td></tr><tr><td>Marketing</td><td>John</td><td>$2,600</td></tr><tr><td>Marketing</td><td>Gloria</td><td>$1,800</td></tr><tr><td>Administration</td><td>Jane</td><td>$2,500</td></tr><tr><td>Finance</td><td>Max</td><td>$2,000</td></tr><tr><td>Administration</td><td>Tyler</td><td>$3,000</td></tr><tr><td>Finance</td><td>Wilkins</td><td>$2,500</td></tr><tr><td>Marketing</td><td>Miles</td><td>$2,800</td></tr><tr><td>Administration</td><td>Sabine</td><td>$1,900</td></tr></tbody></table>\n\nUser: Based on the table, how much is Wilkins earning?\n\n## US Nationwide:\n\nCogAgent: Wilkins is earning $2,500.\n\nMedian Household Income\n\n<div style='text-align: center;'><img src='https://maas-watermark-prod-new.cn-wlcb.ufileos.com/ocr%2Fcrop%2F20260413140511ff410755ca0446d9%2Fcrop_1_1776060313128.png?UCloudPublicKey=TOKEN_6df395df-5d8c-4f69-90f8-a4fe46088958&Signature=LuhP55GOp2cWUD7SVzQXwLTLBmQ%3D&Expires=1776665113' alt='OCR图片'/></div>\n\nUser: Which year has the highest growth rate of median house price?\n\nCogAgent: The year 2008 has the highest growth rate of median house price, which is 150%.\n\n<div style='text-align: center;'><img src='https://maas-watermark-prod-new.cn-wlcb.ufileos.com/ocr%2Fcrop%2F20260413140511ff410755ca0446d9%2Fcrop_2_1776060313140.png?UCloudPublicKey=TOKEN_6df395df-5d8c-4f69-90f8-a4fe46088958&Signature=jlMDOhwX66y8Wf5RSPp4Wo5WUnI%3D&Expires=1776665113' alt='OCR图片'/></div>\n\nUser: What are the appliances in the kitchen in this floorplan?\n\nCogAgent: The kitchen in this floorplan has a built-in oven, a built-in dishwasher, and a built-in microwave.\n\n<div align=\"center\">\n\nFigure 19. More generated samples of CogAgent.\n\n</div>",
+  "layoutDetails": [
+    [
+      {
+        "index": 0,
+        "label": "table",
+        "bbox2d": [
+          77,
+          89,
+          444,
+          312
+        ],
+        "content": "<table><thead><tr><th>method</th><th>top-1 err.</th><th>top-5 err.</th></tr></thead><tbody><tr><td>VGG [41] (ILSVRC'14)</td><td>-</td><td>8.43†</td></tr><tr><td>GoogLeNet [44] (ILSVRC'14)</td><td>-</td><td>7.89</td></tr><tr><td>VGG [41] (v5)</td><td>24.4</td><td>7.1</td></tr><tr><td>PReLU-net [13]</td><td>21.59</td><td>5.71</td></tr><tr><td>BN-inception [16]</td><td>21.99</td><td>5.81</td></tr><tr><td>ResNet-34 B</td><td>21.84</td><td>5.71</td></tr><tr><td>ResNet-34 C</td><td>21.53</td><td>5.60</td></tr><tr><td>ResNet-50</td><td>20.74</td><td>5.25</td></tr><tr><td>ResNet-101</td><td>19.87</td><td>4.60</td></tr><tr><td>ResNet-152</td><td>19.38</td><td>4.49</td></tr></tbody></table>",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          77,
+          89,
+          444,
+          312
+        ]
+      },
+      {
+        "index": 1,
+        "label": "text",
+        "bbox2d": [
+          61,
+          320,
+          458,
+          358
+        ],
+        "content": "<div align=\"center\">\n\nTable 4. Error rates (%) of single-model results on the ImageNet validation set (except $ ^{ \\dagger} $ reported on the test set).\n\n</div>",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          61,
+          320,
+          458,
+          358
+        ]
+      },
+      {
+        "index": 2,
+        "label": "text",
+        "bbox2d": [
+          66,
+          375,
+          403,
+          398
+        ],
+        "content": "## User: Convert it to the markdown format.",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          66,
+          375,
+          403,
+          398
+        ]
+      },
+      {
+        "index": 3,
+        "label": "text",
+        "bbox2d": [
+          66,
+          426,
+          387,
+          626
+        ],
+        "content": "| ------- | ------- | ------- | ------- |\n\n| VGG [41] (ILSVRC'14) | - | 8.43 | |\n\n| GoogLeNet [44] (ILSVRC'14) | - | 7.89 | |\n\n| VGG [41] (v5) | 24.4 | 7.1 | |\n\n| PRELU-net [13] | 21.59 | 5.71 | |\n\n| BN-inception [16] | 21.99 | 5.81 | |\n\n| ResNet-34 B | 21.84 | 5.71 | |\n\n| ResNet-34 C | 21.53 | 5.60 | |\n\n| ResNet-50 | 20.74 | 5.25 | |\n\n| ResNet-101 | 19.87 | 4.60 | |\n\n| ResNet-152 | 19.38 | 4.49 | |",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          66,
+          426,
+          387,
+          626
+        ]
+      },
+      {
+        "index": 4,
+        "label": "text",
+        "bbox2d": [
+          211,
+          660,
+          282,
+          680
+        ],
+        "content": "<div align=\"center\">\n\nDataset 1\n\n</div>",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          211,
+          660,
+          282,
+          680
+        ]
+      },
+      {
+        "index": 5,
+        "label": "table",
+        "bbox2d": [
+          76,
+          703,
+          419,
+          982
+        ],
+        "content": "<table><thead><tr><th>Department</th><th>Name</th><th>Salary</th></tr></thead><tbody><tr><td>Administration</td><td>Emily</td><td>$2,000</td></tr><tr><td>Finance</td><td>Nick</td><td>$1,800</td></tr><tr><td>Marketing</td><td>John</td><td>$2,600</td></tr><tr><td>Marketing</td><td>Gloria</td><td>$1,800</td></tr><tr><td>Administration</td><td>Jane</td><td>$2,500</td></tr><tr><td>Finance</td><td>Max</td><td>$2,000</td></tr><tr><td>Administration</td><td>Tyler</td><td>$3,000</td></tr><tr><td>Finance</td><td>Wilkins</td><td>$2,500</td></tr><tr><td>Marketing</td><td>Miles</td><td>$2,800</td></tr><tr><td>Administration</td><td>Sabine</td><td>$1,900</td></tr></tbody></table>",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          76,
+          703,
+          419,
+          982
+        ]
+      },
+      {
+        "index": 6,
+        "label": "text",
+        "bbox2d": [
+          72,
+          1009,
+          429,
+          1057
+        ],
+        "content": "User: Based on the table, how much is Wilkins earning?",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          72,
+          1009,
+          429,
+          1057
+        ]
+      },
+      {
+        "index": 7,
+        "label": "text",
+        "bbox2d": [
+          528,
+          83,
+          657,
+          104
+        ],
+        "content": "## US Nationwide:",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          528,
+          83,
+          657,
+          104
+        ]
+      },
+      {
+        "index": 8,
+        "label": "text",
+        "bbox2d": [
+          72,
+          1059,
+          382,
+          1085
+        ],
+        "content": "CogAgent: Wilkins is earning $2,500.",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          72,
+          1059,
+          382,
+          1085
+        ]
+      },
+      {
+        "index": 9,
+        "label": "text",
+        "bbox2d": [
+          531,
+          137,
+          702,
+          155
+        ],
+        "content": "Median Household Income",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          531,
+          137,
+          702,
+          155
+        ]
+      },
+      {
+        "index": 10,
+        "label": "image",
+        "bbox2d": [
+          524,
+          164,
+          972,
+          430
+        ],
+        "content": "https://maas-watermark-prod-new.cn-wlcb.ufileos.com/ocr%2Fcrop%2F20260413140511ff410755ca0446d9%2Fcrop_1_1776060313128.png?UCloudPublicKey=TOKEN_6df395df-5d8c-4f69-90f8-a4fe46088958&Signature=LuhP55GOp2cWUD7SVzQXwLTLBmQ%3D&Expires=1776665113",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          524,
+          164,
+          972,
+          430
+        ]
+      },
+      {
+        "index": 11,
+        "label": "text",
+        "bbox2d": [
+          524,
+          467,
+          955,
+          515
+        ],
+        "content": "User: Which year has the highest growth rate of median house price?",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          524,
+          467,
+          955,
+          515
+        ]
+      },
+      {
+        "index": 12,
+        "label": "text",
+        "bbox2d": [
+          524,
+          517,
+          954,
+          566
+        ],
+        "content": "CogAgent: The year 2008 has the highest growth rate of median house price, which is 150%.",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          524,
+          517,
+          954,
+          566
+        ]
+      },
+      {
+        "index": 13,
+        "label": "image",
+        "bbox2d": [
+          532,
+          656,
+          936,
+          984
+        ],
+        "content": "https://maas-watermark-prod-new.cn-wlcb.ufileos.com/ocr%2Fcrop%2F20260413140511ff410755ca0446d9%2Fcrop_2_1776060313140.png?UCloudPublicKey=TOKEN_6df395df-5d8c-4f69-90f8-a4fe46088958&Signature=jlMDOhwX66y8Wf5RSPp4Wo5WUnI%3D&Expires=1776665113",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          532,
+          656,
+          936,
+          984
+        ]
+      },
+      {
+        "index": 14,
+        "label": "text",
+        "bbox2d": [
+          524,
+          1005,
+          944,
+          1052
+        ],
+        "content": "User: What are the appliances in the kitchen in this floorplan?",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          524,
+          1005,
+          944,
+          1052
+        ]
+      },
+      {
+        "index": 15,
+        "label": "text",
+        "bbox2d": [
+          524,
+          1054,
+          945,
+          1126
+        ],
+        "content": "CogAgent: The kitchen in this floorplan has a built-in oven, a built-in dishwasher, and a built-in microwave.",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          524,
+          1054,
+          945,
+          1126
+        ]
+      },
+      {
+        "index": 16,
+        "label": "text",
+        "bbox2d": [
+          333,
+          1169,
+          678,
+          1192
+        ],
+        "content": "<div align=\"center\">\n\nFigure 19. More generated samples of CogAgent.\n\n</div>",
+        "height": 1212,
+        "width": 1016,
+        "bbox_2d": [
+          333,
+          1169,
+          678,
+          1192
+        ]
+      }
+    ]
+  ],
+  "layoutVisualization": [
+    "https://maas-watermark-prod-new.cn-wlcb.ufileos.com/ocr%2Flayout%2F20260413140511ff410755ca0446d9%2Flayout_0_1776060313065.png?UCloudPublicKey=TOKEN_6df395df-5d8c-4f69-90f8-a4fe46088958&Signature=ycQsfoycAZThnpXhExphiO0RvkQ%3D&Expires=1776665113"
+  ],
+  "dataInfo": {
+    "pages": [
+      {
+        "width": 1016,
+        "height": 1212
+      }
+    ],
+    "num_pages": 1
+  },
+  "usage": {
+    "prompt_tokens": 817,
+    "completion_tokens": 1161,
+    "total_tokens": 1978,
+    "total_calls": 0,
+    "prompt_tokens_details": null,
+    "completion_tokens_details": null
+  }
+}

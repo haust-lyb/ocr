@@ -130,6 +130,25 @@
         .tooltip .content {
             color: #eee;
         }
+        .tooltip .content table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .tooltip .content table th,
+        .tooltip .content table td {
+            border: 1px solid #0f3460;
+            padding: 4px 8px;
+            text-align: left;
+        }
+        .tooltip .content table th {
+            background: #0f3460;
+            color: #00d4ff;
+        }
+        .tooltip .content table tr:nth-child(even) {
+            background: rgba(255,255,255,0.05);
+        }
 
         .legend {
             background: #16213e;
@@ -331,7 +350,12 @@
             if (box.extracted_image) {
                 tooltipContent.innerHTML = `<img src="/image/${box.extracted_image}" style="max-width: 100%; border-radius: 4px;">`;
             } else if (box.ocr_text) {
-                tooltipContent.textContent = box.ocr_text;
+                // 如果是 HTML 表格内容，渲染表格
+                if (box.ocr_text.trim().startsWith('<table')) {
+                    tooltipContent.innerHTML = box.ocr_text;
+                } else {
+                    tooltipContent.textContent = box.ocr_text;
+                }
             } else if (box.ocr_error) {
                 tooltipContent.innerHTML = `<span style="color: #ff6b6b;">OCR 失败: ${box.ocr_error}</span>`;
             } else if (box.extract_error) {

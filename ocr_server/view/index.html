@@ -8,8 +8,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #eee;
+            background: #f5f7fa;
+            color: #333;
             min-height: 100vh;
             padding: 40px 20px;
         }
@@ -20,49 +20,50 @@
             align-items: center;
             margin-bottom: 40px;
         }
-        h1 { color: #00d4ff; font-size: 2.2em; }
+        h1 { color: #0066cc; font-size: 2.2em; }
         .nav-btn {
             background: transparent;
-            color: #00d4ff;
+            color: #0066cc;
             padding: 10px 20px;
             border-radius: 6px;
             text-decoration: none;
             font-weight: bold;
-            border: 1px solid #00d4ff;
+            border: 1px solid #0066cc;
             transition: all 0.3s;
         }
-        .nav-btn:hover { background: #00d4ff; color: #1a1a2e; }
-        .nav-btn.console { border-color: #ff6b6b; color: #ff6b6b; }
-        .nav-btn.console:hover { background: #ff6b6b; color: #fff; }
-        .subtitle { text-align: center; color: #888; margin-bottom: 40px; font-size: 1.1em; }
+        .nav-btn:hover { background: #0066cc; color: #fff; }
+        .nav-btn.console { border-color: #e74c3c; color: #e74c3c; }
+        .nav-btn.console:hover { background: #e74c3c; color: #fff; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 40px; font-size: 1.1em; }
         .card {
-            background: #16213e;
+            background: #fff;
             border-radius: 16px;
             padding: 30px;
             margin-bottom: 25px;
-            border: 1px solid #0f3460;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         }
         .upload-area {
-            border: 2px dashed #0f3460;
+            border: 2px dashed #ccc;
             border-radius: 12px;
             padding: 50px 30px;
             text-align: center;
             transition: all 0.3s;
             cursor: pointer;
         }
-        .upload-area:hover { border-color: #00d4ff; background: rgba(0, 212, 255, 0.05); }
-        .upload-area.dragover { border-color: #00d4ff; background: rgba(0, 212, 255, 0.1); }
+        .upload-area:hover { border-color: #0066cc; background: rgba(0, 102, 204, 0.03); }
+        .upload-area.dragover { border-color: #0066cc; background: rgba(0, 102, 204, 0.08); }
         .upload-icon { font-size: 48px; margin-bottom: 15px; }
-        .upload-text { color: #888; font-size: 1.1em; }
-        .upload-hint { color: #666; font-size: 0.9em; margin-top: 10px; }
+        .upload-text { color: #333; font-size: 1.1em; }
+        .upload-hint { color: #888; font-size: 0.9em; margin-top: 10px; }
         #fileInput { display: none; }
         .preview-area { margin-top: 20px; text-align: center; display: none; }
         .preview-area.show { display: block; }
-        .preview-img { max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #0f3460; }
+        .preview-img { max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #e0e0e0; }
         .btn {
             display: inline-block;
-            background: #00d4ff;
-            color: #1a1a2e;
+            background: #0066cc;
+            color: #fff;
             padding: 12px 30px;
             border-radius: 8px;
             text-decoration: none;
@@ -72,17 +73,17 @@
             cursor: pointer;
             font-size: 1em;
         }
-        .btn:hover { background: #00b4d8; transform: translateY(-2px); }
-        .btn:disabled { background: #666; cursor: not-allowed; transform: none; }
+        .btn:hover { background: #0052a3; transform: translateY(-2px); }
+        .btn:disabled { background: #aaa; cursor: not-allowed; transform: none; }
         .btn-group { text-align: center; margin-top: 25px; display: flex; gap: 15px; justify-content: center; }
-        .btn-view { background: #4ecdc4; }
-        .btn-view:hover { background: #3dbdb5; }
+        .btn-view { background: #27ae60; }
+        .btn-view:hover { background: #219a52; }
         .status { text-align: center; margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
         .status.show { display: block; }
-        .status.loading { background: rgba(0, 212, 255, 0.1); color: #00d4ff; }
-        .status.success { background: rgba(78, 205, 196, 0.1); color: #4ecdc4; }
-        .status.error { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; }
-        .result-info { margin-top: 15px; font-size: 0.95em; color: #888; }
+        .status.loading { background: rgba(0, 102, 204, 0.1); color: #0066cc; }
+        .status.success { background: rgba(39, 174, 96, 0.1); color: #27ae60; }
+        .status.error { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+        .result-info { margin-top: 15px; font-size: 0.95em; color: #666; }
     </style>
 </head>
 <body>
@@ -108,7 +109,8 @@
             <div class="preview-area" id="previewArea">
                 <img id="previewImg" class="preview-img" src="" alt="预览">
                 <div class="btn-group">
-                    <button class="btn" id="recognizeBtn" onclick="startRecognize()">开始识别</button>
+                    <button class="btn" id="ocrBtn" onclick="startOcr()">OCR识别</button>
+                    <button class="btn" id="mdBtn" onclick="startMarkdown()" style="background: #4ecdc4;">Markdown识别</button>
                     <button class="btn" onclick="clearSelection()" style="background: #666;">清除</button>
                 </div>
             </div>
@@ -135,7 +137,8 @@
         const resultInfo = document.getElementById('resultInfo');
         const resultBtns = document.getElementById('resultBtns');
         const viewLink = document.getElementById('viewLink');
-        const recognizeBtn = document.getElementById('recognizeBtn');
+        const ocrBtn = document.getElementById('ocrBtn');
+        const mdBtn = document.getElementById('mdBtn');
 
         uploadArea.addEventListener('click', () => fileInput.click());
 
@@ -182,13 +185,14 @@
             resultBtns.style.display = 'none';
         }
 
-        async function startRecognize() {
+        async function startOcr() {
             if (!selectedFile) return;
 
-            recognizeBtn.disabled = true;
-            recognizeBtn.textContent = '识别中...';
+            ocrBtn.disabled = true;
+            ocrBtn.textContent = '识别中...';
+            mdBtn.disabled = true;
             statusArea.className = 'status show loading';
-            statusText.textContent = '正在识别，请稍候...';
+            statusText.textContent = '正在版面识别，请稍候...';
             resultInfo.textContent = '';
             resultBtns.style.display = 'none';
 
@@ -196,7 +200,7 @@
             formData.append('file', selectedFile);
 
             try {
-                const res = await fetch('/layout', {
+                const res = await fetch('/ocr', {
                     method: 'POST',
                     body: formData
                 });
@@ -208,7 +212,7 @@
                     statusText.textContent = '识别失败: ' + data.error;
                 } else {
                     statusArea.className = 'status show success';
-                    statusText.textContent = '识别完成！';
+                    statusText.textContent = 'OCR识别完成！';
                     resultInfo.innerHTML = `识别 ID: <strong>${data.id}</strong>`;
                     viewLink.href = '/viewer?id=' + data.id;
                     resultBtns.style.display = 'flex';
@@ -217,8 +221,50 @@
                 statusArea.className = 'status show error';
                 statusText.textContent = '请求失败: ' + err.message;
             } finally {
-                recognizeBtn.disabled = false;
-                recognizeBtn.textContent = '开始识别';
+                ocrBtn.disabled = false;
+                ocrBtn.textContent = 'OCR识别';
+                mdBtn.disabled = false;
+            }
+        }
+
+        async function startMarkdown() {
+            if (!selectedFile) return;
+
+            ocrBtn.disabled = true;
+            mdBtn.disabled = true;
+            mdBtn.textContent = '识别中...';
+            statusArea.className = 'status show loading';
+            statusText.textContent = '正在Markdown识别，请稍候...';
+            resultInfo.textContent = '';
+            resultBtns.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const res = await fetch('/markdown', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    statusArea.className = 'status show error';
+                    statusText.textContent = '识别失败: ' + data.error;
+                } else {
+                    statusArea.className = 'status show success';
+                    statusText.textContent = 'Markdown识别完成！';
+                    resultInfo.innerHTML = `识别 ID: <strong>${data.id}</strong> | <a href="/viewer?id=${data.id}" class="btn btn-view" target="_blank">查看结果</a>`;
+                    resultBtns.style.display = 'none';
+                }
+            } catch (err) {
+                statusArea.className = 'status show error';
+                statusText.textContent = '请求失败: ' + err.message;
+            } finally {
+                ocrBtn.disabled = false;
+                mdBtn.disabled = false;
+                mdBtn.textContent = 'Markdown识别';
             }
         }
     </script>

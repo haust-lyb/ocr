@@ -8,8 +8,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
+            background: #f5f7fa;
+            color: #333;
             min-height: 100vh;
             padding: 20px;
         }
@@ -19,12 +19,12 @@
             align-items: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid #0f3460;
+            border-bottom: 1px solid #e0e0e0;
         }
-        h1 { color: #00d4ff; }
+        h1 { color: #0066cc; }
         .btn {
-            background: #00d4ff;
-            color: #1a1a2e;
+            background: #0066cc;
+            color: #fff;
             padding: 10px 20px;
             border-radius: 6px;
             text-decoration: none;
@@ -32,40 +32,63 @@
             border: none;
             cursor: pointer;
         }
-        .btn:hover { background: #00b4d8; }
+        .btn:hover { background: #0052a3; }
         .card {
-            background: #16213e;
+            background: #fff;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 15px;
-            border: 1px solid #0f3460;
+            border: 1px solid #e0e0e0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-        .info h3 { color: #fff; margin-bottom: 5px; }
-        .info p { color: #888; font-size: 0.9em; }
+        .info h3 { color: #333; margin-bottom: 5px; }
+        .info p { color: #666; font-size: 0.9em; }
         .status {
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: bold;
         }
-        .status.success { background: rgba(78, 205, 196, 0.2); color: #4ecdc4; }
-        .status.error { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
-        .status.pending { background: rgba(199, 146, 234, 0.2); color: #c792ea; }
+        .status.success { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
+        .status.error { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+        .status.pending { background: rgba(155, 89, 182, 0.15); color: #9b59b6; }
         .view-btn {
-            background: #ffe66d;
-            color: #1a1a2e;
+            background: #f39c12;
+            color: #fff;
             padding: 8px 16px;
             border-radius: 6px;
             text-decoration: none;
             font-weight: bold;
             font-size: 0.9em;
         }
-        .view-btn:hover { background: #ffd93d; }
+        .view-btn:hover { background: #d68910; }
         .empty { text-align: center; color: #888; padding: 60px; }
         .loading { text-align: center; color: #888; padding: 60px; }
+        .type-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .type-badge.ocr { background: rgba(0, 102, 204, 0.15); color: #0066cc; }
+        .type-badge.markdown { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
+        .delete-btn {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .delete-btn:hover { background: rgba(231, 76, 60, 0.3); }
+        .actions { display: flex; align-items: center; gap: 12px; }
     </style>
 </head>
 <body>
@@ -90,24 +113,46 @@
                     return;
                 }
 
-                container.innerHTML = data.records.map(r => `
-                    <div class="card">
+                container.innerHTML = data.records.map(r => {
+                    const viewUrl = `/viewer?id=${r.id}`;
+                    const typeLabel = r.rec_type === 'markdown' ? 'Markdown' : 'OCR';
+                    return `
+                    <div class="card" id="card-${r.id}">
                         <div class="info">
                             <h3>${r.image_name || '未知文件'}</h3>
-                            <p>ID: ${r.id} | 时间: ${new Date(r.created_at).toLocaleString('zh-CN')}</p>
+                            <p><span class="type-badge ${r.rec_type}">${typeLabel}</span>ID: ${r.id} | 时间: ${new Date(r.created_at).toLocaleString('zh-CN')}</p>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="actions">
                             <span class="status ${r.status}">${r.status === 'success' ? '成功' : r.status === 'error' ? '失败' : '处理中'}</span>
-                            <a href="/viewer?id=${r.id}" class="view-btn" target="_blank">查看详情</a>
+                            <a href="${viewUrl}" class="view-btn" target="_blank">查看详情</a>
+                            <button class="delete-btn" onclick="deleteRecord('${r.id}')">删除</button>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             } catch (err) {
                 document.getElementById('records').innerHTML = '<div class="empty">加载失败: ' + err + '</div>';
             }
         }
 
         loadRecords();
+
+        async function deleteRecord(id) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            try {
+                const res = await fetch(`/record/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    const card = document.getElementById('card-' + id);
+                    if (card) card.remove();
+                    // 如果没有记录了，显示空提示
+                    if (!document.querySelector('.card')) {
+                        document.getElementById('records').innerHTML = '<div class="empty">暂无识别记录</div>';
+                    }
+                }
+            } catch (err) {
+                alert('删除失败: ' + err);
+            }
+        }
     </script>
 </body>
 </html>

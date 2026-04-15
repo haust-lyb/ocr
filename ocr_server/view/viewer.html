@@ -4,306 +4,300 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OCR 布局可视化</title>
+    <link href="https://cdn.jsdelivr.net/npm/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsoneditor/dist/jsoneditor.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
+            background: #f5f7fa;
+            color: #333;
             min-height: 100vh;
             padding: 20px;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #00d4ff;
-        }
-        .upload-section {
-            background: #16213e;
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 20px;
-            border: 2px dashed #0f3460;
-        }
-        .upload-section input[type="file"] {
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 20px; color: #0066cc; }
+
+        .info-bar {
             display: none;
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .upload-label {
-            display: inline-block;
-            background: #00d4ff;
-            color: #1a1a2e;
-            padding: 12px 30px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        .upload-label:hover {
-            background: #00b4d8;
-        }
-        .viewer {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .image-container {
-            flex: 1;
-            min-width: 600px;
-            background: #16213e;
+        .info-bar a { color: #0066cc; margin-left: 20px; }
+
+        .main-viewer { display: flex; gap: 20px; height: calc(100vh - 120px); }
+        .panel {
+            background: #fff;
             border-radius: 12px;
             padding: 20px;
-            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         }
+        .image-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .content-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            background: transparent;
+            color: #666;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: bold;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: #333; }
+        .tab-btn.active { color: #0066cc; border-bottom-color: #0066cc; }
+        .tab-content { display: none; flex: 1; overflow-y: auto; }
+        .tab-content.active { display: flex; flex-direction: column; }
+
         .image-wrapper {
             position: relative;
-            display: inline-block;
+            flex: 1;
+            display: grid;
+            place-items: center;
         }
         .image-wrapper img {
             max-width: 100%;
-            display: block;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            /* 让 grid 居中后，图片本身的布局位置 */
+            grid-row: 1;
+            grid-column: 1;
         }
         .boxes-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             pointer-events: none;
+            grid-row: 1;
+            grid-column: 1;
+            /* 从容器左上角开始，大小等于图片渲染后的大小 */
         }
         .box {
             position: absolute;
             border: 2px solid;
             border-radius: 4px;
-            pointer-events: auto;
-            cursor: pointer;
-            transition: all 0.2s;
+            pointer-events: none;
+            transition: all 0.15s;
             opacity: 0.6;
         }
-        .box:hover {
-            opacity: 1;
-            border-width: 3px;
-            z-index: 10;
-        }
-        .box.text { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.2); }
-        .box.image { border-color: #4ecdc4; background: rgba(78, 205, 196, 0.2); }
-        .box.header { border-color: #ffe66d; background: rgba(255, 230, 109, 0.2); }
-        .box.number { border-color: #c792ea; background: rgba(199, 146, 234, 0.2); }
-        .box.table { border-color: #89ddff; background: rgba(137, 221, 255, 0.2); }
-        .box.default { border-color: #82aaff; background: rgba(130, 170, 255, 0.2); }
+        .box.highlight { opacity: 1 !important; border-width: 3px; z-index: 10; box-shadow: 0 0 15px rgba(0,102,204,0.5); background: rgba(0,102,204,0.15) !important; transform: scale(1.02); }
+        .box.text { border-color: #e74c3c; background: rgba(231, 76, 60, 0.15); }
+        .box.image { border-color: #27ae60; background: rgba(39, 174, 96, 0.15); }
+        .box.header { border-color: #f39c12; background: rgba(243, 156, 18, 0.15); }
+        .box.table { border-color: #3498db; background: rgba(52, 152, 219, 0.15); }
+        .box.default { border-color: #9b59b6; background: rgba(155, 89, 182, 0.15); }
 
-        .tooltip {
-            position: fixed;
-            background: #0f3460;
-            border: 1px solid #00d4ff;
+        .legend { display: none; flex-wrap: wrap; gap: 6px; padding: 8px 0; border-bottom: 1px solid #e0e0e0; margin-bottom: 8px; width: 100%; box-sizing: border-box; align-content: flex-start; }
+        .legend.show { display: flex; }
+        .legend h3 { color: #0066cc; margin-bottom: 8px; font-size: 0.9em; width: 100%; }
+        #legendItems { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+        .legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.75em; padding: 2px 6px; background: #f0f0f0; border-radius: 4px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; border: 2px solid; flex-shrink: 0; }
+        .stats { display: none; }
+        .legend-color.text { border-color: #e74c3c; background: rgba(231, 76, 60, 0.15); }
+        .legend-color.image { border-color: #27ae60; background: rgba(39, 174, 96, 0.15); }
+        .legend-color.header { border-color: #f39c12; background: rgba(243, 156, 18, 0.15); }
+        .legend-color.table { border-color: #3498db; background: rgba(52, 152, 219, 0.15); }
+        .legend-color.chart { border-color: #e67e22; background: rgba(230, 126, 34, 0.15); }
+        .legend-color.figure_title { border-color: #2980b9; background: rgba(41, 128, 185, 0.15); }
+        .legend-color.doc_title { border-color: #0066cc; background: rgba(0, 102, 204, 0.15); }
+        .legend-color.paragraph_title { border-color: #3498db; background: rgba(52, 152, 219, 0.15); }
+        .legend-color.content { border-color: #9b59b6; background: rgba(155, 89, 182, 0.15); }
+        .legend-color.abstract { border-color: #00a8cc; background: rgba(0, 168, 204, 0.15); }
+        .legend-color.footer { border-color: #8e44ad; background: rgba(142, 68, 173, 0.15); }
+        .legend-color.footnote { border-color: #a29bfe; background: rgba(162, 155, 254, 0.15); }
+        .legend-color.reference { border-color: #7f8c8d; background: rgba(127, 140, 141, 0.15); }
+        .legend-color.formula_number { border-color: #e74c3c; background: rgba(231, 76, 60, 0.15); }
+        .legend-color.display_formula { border-color: #d35400; background: rgba(211, 84, 0, 0.15); }
+        .legend-color.inline_formula { border-color: #fd79a8; background: rgba(253, 121, 168, 0.15); }
+        .legend-color.algorithm { border-color: #27ae60; background: rgba(39, 174, 96, 0.15); }
+        .legend-color.aside_text { border-color: #f1c40f; background: rgba(241, 196, 15, 0.15); }
+        .legend-color.vertical_text { border-color: #c0392b; background: rgba(192, 57, 43, 0.15); }
+        .legend-color.seal { border-color: #c0392b; background: rgba(192, 57, 43, 0.15); }
+        .legend-color.footer_image { border-color: #008b8b; background: rgba(0, 139, 139, 0.15); }
+        .legend-color.header_image { border-color: #20b2aa; background: rgba(32, 178, 170, 0.15); }
+        .legend-color.reference_content { border-color: #636e72; background: rgba(99, 110, 114, 0.15); }
+        .legend-color.vision_footnote { border-color: #74b9ff; background: rgba(116, 185, 255, 0.15); }
+        .legend-color.default { border-color: #9b59b6; background: rgba(155, 89, 182, 0.15); }
+        .legend-color.number { border-color: #8e44ad; background: rgba(142, 68, 173, 0.15); }
+
+        .stats { margin-left: auto; display: flex; gap: 6px; align-items: center; font-size: 0.75em; color: #666; }
+        .stat-item { padding: 2px 6px; background: #f0f0f0; border-radius: 4px; }
+
+        #jsonEditor { flex: 1; min-height: 0; }
+        .jsoneditor-container { height: 100% !important; }
+
+        /* Markdown 样式 */
+        .raw-content {
+            background: #f8f9fa;
+            padding: 15px;
             border-radius: 8px;
-            padding: 12px 16px;
-            max-width: 400px;
-            max-height: 300px;
-            overflow-y: auto;
-            font-size: 14px;
-            line-height: 1.5;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: none;
             white-space: pre-wrap;
             word-break: break-all;
-        }
-        .tooltip.show {
-            display: block;
-        }
-        .tooltip .label {
-            font-weight: bold;
-            color: #00d4ff;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #0f3460;
-            padding-bottom: 8px;
-        }
-        .tooltip .content {
-            color: #eee;
-        }
-        .tooltip .content table {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 12px;
-            margin-top: 8px;
-        }
-        .tooltip .content table th,
-        .tooltip .content table td {
-            border: 1px solid #0f3460;
-            padding: 4px 8px;
-            text-align: left;
-        }
-        .tooltip .content table th {
-            background: #0f3460;
-            color: #00d4ff;
-        }
-        .tooltip .content table tr:nth-child(even) {
-            background: rgba(255,255,255,0.05);
+            font-family: monospace;
+            line-height: 1.6;
+            font-size: 14px;
+            overflow-y: auto;
+            flex: 1;
         }
 
-        .legend {
-            background: #16213e;
-            border-radius: 12px;
-            padding: 20px;
-            min-width: 200px;
-        }
-        .legend h3 {
-            margin-bottom: 15px;
-            color: #00d4ff;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .legend-color {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            border: 2px solid;
-        }
-        .legend-color.text { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.3); }
-        .legend-color.image { border-color: #4ecdc4; background: rgba(78, 205, 196, 0.3); }
-        .legend-color.header { border-color: #ffe66d; background: rgba(255, 230, 109, 0.3); }
-        .legend-color.number { border-color: #c792ea; background: rgba(199, 146, 234, 0.3); }
-        .legend-color.table { border-color: #89ddff; background: rgba(137, 221, 255, 0.3); }
-        .legend-color.chart { border-color: #ff9f43; background: rgba(255, 159, 67, 0.3); }
-        .legend-color.figure_title { border-color: #54a0ff; background: rgba(84, 160, 255, 0.3); }
-        .legend-color.footer { border-color: #5f27cd; background: rgba(95, 39, 205, 0.3); }
-        .legend-color.footer_image { border-color: #01a3a4; background: rgba(1, 163, 164, 0.3); }
-        .legend-color.formula_number { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.3); }
-        .legend-color.header_image { border-color: #00d2d3; background: rgba(0, 210, 211, 0.3); }
-        .legend-color.display_formula { border-color: #ee5a24; background: rgba(238, 90, 36, 0.3); }
-        .legend-color.abstract { border-color: #0abde3; background: rgba(10, 189, 227, 0.3); }
-        .legend-color.algorithm { border-color: #10ac84; background: rgba(16, 172, 132, 0.3); }
-        .legend-color.aside_text { border-color: #feca57; background: rgba(254, 202, 87, 0.3); }
-        .legend-color.content { border-color: #ff9ff3; background: rgba(255, 159, 243, 0.3); }
-        .legend-color.doc_title { border-color: #00d4ff; background: rgba(0, 212, 255, 0.3); }
-        .legend-color.footnote { border-color: #a29bfe; background: rgba(162, 155, 254, 0.3); }
-        .legend-color.inline_formula { border-color: #fd79a8; background: rgba(253, 121, 168, 0.3); }
-        .legend-color.paragraph_title { border-color: #55a3ff; background: rgba(85, 163, 255, 0.3); }
-        .legend-color.reference { border-color: #b2bec3; background: rgba(178, 190, 195, 0.3); }
-        .legend-color.reference_content { border-color: #636e72; background: rgba(99, 110, 114, 0.3); }
-        .legend-color.seal { border-color: #d63031; background: rgba(214, 48, 49, 0.3); }
-        .legend-color.vertical_text { border-color: #e17055; background: rgba(225, 112, 85, 0.3); }
-        .legend-color.vision_footnote { border-color: #74b9ff; background: rgba(116, 185, 255, 0.3); }
-        .legend-color.default { border-color: #82aaff; background: rgba(130, 170, 255, 0.3); }
+        .markdown-content { line-height: 1.8; font-size: 15px; flex: 1; overflow-y: auto; padding: 15px; }
+        .markdown-content h1 { color: #0066cc; font-size: 1.8em; margin: 20px 0 15px; border-bottom: 1px solid #e0e0e0; padding-bottom: 10px; }
+        .markdown-content h2 { color: #27ae60; font-size: 1.5em; margin: 18px 0 12px; }
+        .markdown-content h3 { color: #f39c12; font-size: 1.3em; margin: 15px 0 10px; }
+        .markdown-content h4, .markdown-content h5, .markdown-content h6 { color: #9b59b6; margin: 12px 0 8px; }
+        .markdown-content p { margin: 10px 0; }
+        .markdown-content ul, .markdown-content ol { margin: 10px 0; padding-left: 25px; }
+        .markdown-content li { margin: 5px 0; }
+        .markdown-content code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; color: #d35400; }
+        .markdown-content pre { background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto; margin: 15px 0; }
+        .markdown-content pre code { background: none; padding: 0; color: #333; }
+        .markdown-content table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+        .markdown-content table th, .markdown-content table td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; }
+        .markdown-content table th { background: #f0f0f0; color: #0066cc; }
+        .markdown-content table tr:nth-child(even) { background: #fafafa; }
+        .markdown-content blockquote { border-left: 4px solid #0066cc; padding-left: 15px; margin: 15px 0; color: #666; }
+        .markdown-content hr { border: none; border-top: 1px solid #e0e0e0; margin: 20px 0; }
+        .markdown-content a { color: #27ae60; }
+        .markdown-content img { max-width: 100%; border-radius: 8px; margin: 10px 0; }
 
-        .stats {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #0f3460;
-        }
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        .toggle-btn {
-            background: #4ecdc4;
-            color: #1a1a2e;
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.9em;
-            margin-left: 15px;
-        }
-        .toggle-btn:hover { background: #3dbdb5; }
-        .toggle-btn.active { background: #ffe66d; }
+        /* OCR item style in JS */
+        .ocr-item { background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>OCR 布局可视化工具</h1>
+        <h1>OCR 布局可视化</h1>
 
-        <div id="infoBar" style="display: none; background: #16213e; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-            <span id="recordInfo" style="color: #888;"></span>
-            <button id="toggleBtn" class="toggle-btn" onclick="toggleImage()">查看版面分析图</button>
-            <a href="/console" style="color: #00d4ff; margin-left: 20px;">返回列表</a>
+        <div class="info-bar" id="infoBar">
+            <span id="recordInfo" style="color: #666;"></span>
+            <a href="/console">返回列表</a>
         </div>
 
-        <div class="viewer" id="viewer" style="display: none;">
-            <div class="image-container">
-                <div class="image-wrapper" id="imageWrapper">
-                    <img id="mainImage" src="" alt="原图">
-                    <div class="boxes-overlay" id="boxesOverlay"></div>
+        <div class="main-viewer" id="mainViewer" style="display: none;">
+            <!-- 左侧：图片面板 -->
+            <div class="panel image-panel">
+                <div class="tab-bar">
+                    <button class="tab-btn active" data-tab="json">JSON渲染版面</button>
+                    <button class="tab-btn" data-tab="annotated">版面分析原图</button>
+                    <button class="tab-btn" data-tab="original">用户上传原图</button>
+                </div>
+
+                <div id="tabJson" class="tab-content active">
+                    <div class="legend show" id="legend">
+                        <span style="color:#0066cc;font-weight:bold;font-size:0.9em;width:100%;margin-bottom:6px;">图例</span>
+                        <div id="legendItems"></div>
+                    </div>
+                    <div class="image-wrapper">
+                        <img id="imgJson" src="" alt="JSON渲染">
+                        <div class="boxes-overlay" id="boxesOverlay"></div>
+                    </div>
+                </div>
+
+                <div id="tabAnnotated" class="tab-content">
+                    <div class="image-wrapper">
+                        <img id="imgAnnotated" src="" alt="版面分析图">
+                    </div>
+                </div>
+
+                <div id="tabOriginal" class="tab-content">
+                    <div class="image-wrapper">
+                        <img id="imgOriginal" src="" alt="原图">
+                    </div>
                 </div>
             </div>
 
-            <div class="legend">
-                <h3>图例</h3>
-                <div class="legend-item"><div class="legend-color text"></div><span>文本 (text)</span></div>
-                <div class="legend-item"><div class="legend-color image"></div><span>图片 (image)</span></div>
-                <div class="legend-item"><div class="legend-color header"></div><span>标题 (header)</span></div>
-                <div class="legend-item"><div class="legend-color number"></div><span>数字 (number)</span></div>
-                <div class="legend-item"><div class="legend-color table"></div><span>表格 (table)</span></div>
-                <div class="legend-item"><div class="legend-color chart"></div><span>图表 (chart)</span></div>
-                <div class="legend-item"><div class="legend-color figure_title"></div><span>图注 (figure_title)</span></div>
-                <div class="legend-item"><div class="legend-color footer"></div><span>页脚 (footer)</span></div>
-                <div class="legend-item"><div class="legend-color footer_image"></div><span>页脚图片 (footer_image)</span></div>
-                <div class="legend-item"><div class="legend-color formula_number"></div><span>公式编号 (formula_number)</span></div>
-                <div class="legend-item"><div class="legend-color header_image"></div><span>页眉图片 (header_image)</span></div>
-                <div class="legend-item"><div class="legend-color display_formula"></div><span>公式 (display_formula)</span></div>
-                <div class="legend-item"><div class="legend-color abstract"></div><span>摘要 (abstract)</span></div>
-                <div class="legend-item"><div class="legend-color algorithm"></div><span>算法 (algorithm)</span></div>
-                <div class="legend-item"><div class="legend-color aside_text"></div><span>旁白 (aside_text)</span></div>
-                <div class="legend-item"><div class="legend-color content"></div><span>正文 (content)</span></div>
-                <div class="legend-item"><div class="legend-color doc_title"></div><span>文档标题 (doc_title)</span></div>
-                <div class="legend-item"><div class="legend-color footnote"></div><span>脚注 (footnote)</span></div>
-                <div class="legend-item"><div class="legend-color inline_formula"></div><span>行内公式 (inline_formula)</span></div>
-                <div class="legend-item"><div class="legend-color paragraph_title"></div><span>段落标题 (paragraph_title)</span></div>
-                <div class="legend-item"><div class="legend-color reference"></div><span>参考文献 (reference)</span></div>
-                <div class="legend-item"><div class="legend-color reference_content"></div><span>参考文献内容 (reference_content)</span></div>
-                <div class="legend-item"><div class="legend-color seal"></div><span>印章 (seal)</span></div>
-                <div class="legend-item"><div class="legend-color vertical_text"></div><span>竖排文本 (vertical_text)</span></div>
-                <div class="legend-item"><div class="legend-color vision_footnote"></div><span>脚注 (vision_footnote)</span></div>
-
-                <div class="stats" id="stats"></div>
+            <!-- 右侧：内容面板 -->
+            <div class="panel content-panel">
+                <div class="tab-bar" id="contentTabBar">
+                    <button class="tab-btn active" data-tab="ocr">识别结果</button>
+                    <button class="tab-btn" data-tab="jsonview">JSON</button>
+                </div>
+                <div id="tabOcr" class="tab-content active">
+                    <div id="ocrContent" style="padding:10px;overflow-y:auto;flex:1;"></div>
+                </div>
+                <div id="tabJsonview" class="tab-content">
+                    <div id="jsonEditor"></div>
+                </div>
+                <div id="tabMdRaw" class="tab-content">
+                    <div id="mdRawContent" class="raw-content"></div>
+                </div>
+                <div id="tabMdRendered" class="tab-content">
+                    <div id="mdRenderedContent"></div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="tooltip" id="tooltip">
-        <div class="label" id="tooltipLabel"></div>
-        <div class="content" id="tooltipContent"></div>
     </div>
 
     <script>
         let currentData = null;
         let imageScale = 1;
-        let originalImageSrc = null;
-        let annotatedImageSrc = null;
-        let showingAnnotated = true;
+        let jsonEditor = null;
+        let currentBoxes = [];  // 保存当前 boxes 用于 resize 时重新渲染
 
-        function renderBoxes(data) {
-            currentData = data;
+        // Tab 切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                const tabBar = btn.closest('.tab-bar');
+                tabBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                tabBar.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                const contentId = 'tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+                document.getElementById(contentId).classList.add('active');
+            });
+        });
+
+        function renderBoxes(boxes) {
             const overlay = document.getElementById('boxesOverlay');
-            const img = document.getElementById('mainImage');
+            const img = document.getElementById('imgJson');
             overlay.innerHTML = '';
 
-            // 等待图片加载完成
-            if (!img.naturalWidth) {
-                img.onload = () => renderBoxes(data);
-                return;
-            }
+            currentBoxes = boxes;  // 保存 boxes
 
-            // 计算缩放比例
-            imageScale = img.offsetWidth / img.naturalWidth;
+            // 使用 getBoundingClientRect 获取图片实际渲染尺寸
+            // 这个方法在 layout 完成后调用，更可靠
+            const imgRect = img.getBoundingClientRect();
+            const wrapperRect = overlay.parentElement.getBoundingClientRect();
 
-            // 从 result_json 字段获取 boxes，格式为 [{res: {boxes: [...]}}]
-            const boxes = data[0]?.res?.boxes || [];
+            // 计算图片相对容器的偏移量
+            const offsetX = imgRect.left - wrapperRect.left;
+            const offsetY = imgRect.top - wrapperRect.top;
+
+            // 计算缩放比例（基于宽度）
+            imageScale = imgRect.width / img.naturalWidth;
+
+            // 设置 overlay 覆盖在图片上
+            overlay.style.width = imgRect.width + 'px';
+            overlay.style.height = imgRect.height + 'px';
+            overlay.style.left = offsetX + 'px';
+            overlay.style.top = offsetY + 'px';
+
             const stats = {};
+            const labelNames = {
+                text: '文本', image: '图片', header: '标题', number: '数字', table: '表格',
+                chart: '图表', figure_title: '图注', doc_title: '文档标题', paragraph_title: '段落标题',
+                content: '正文', abstract: '摘要', footer: '页脚', footnote: '脚注', reference: '参考文献',
+                formula_number: '公式编号', display_formula: '公式', inline_formula: '行内公式',
+                algorithm: '算法', aside_text: '旁白', vertical_text: '竖排文本', seal: '印章',
+                footer_image: '页脚图片', header_image: '页眉图片', reference_content: '参考文献内容',
+                vision_footnote: 'Vision脚注'
+            };
 
             boxes.forEach((box, index) => {
                 const label = box.label || 'unknown';
@@ -314,100 +308,41 @@
 
                 const div = document.createElement('div');
                 div.className = `box ${label}`;
+                div.id = `box-${index}`;
                 div.style.left = (coord[0] * imageScale) + 'px';
                 div.style.top = (coord[1] * imageScale) + 'px';
                 div.style.width = ((coord[2] - coord[0]) * imageScale) + 'px';
                 div.style.height = ((coord[3] - coord[1]) * imageScale) + 'px';
 
-                // 点击显示 OCR 内容
-                div.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    showTooltip(div, box, label, index);
-                });
-
                 overlay.appendChild(div);
             });
 
-            // 更新统计
-            const statsDiv = document.getElementById('stats');
-            statsDiv.innerHTML = '<h3>统计</h3>';
+            // 动态渲染图例（带统计数量）
+            const legendDiv = document.getElementById('legendItems');
+            legendDiv.innerHTML = '';
             Object.entries(stats).forEach(([label, count]) => {
-                statsDiv.innerHTML += `<div class="stat-item"><span>${label}</span><span>${count}</span></div>`;
+                const name = labelNames[label] || label;
+                legendDiv.innerHTML += `<div class="legend-item"><div class="legend-color ${label}"></div><span>${name}(${count})</span></div>`;
             });
         }
 
-        function showTooltip(element, box, label, index) {
-            const tooltip = document.getElementById('tooltip');
-            const tooltipContent = document.getElementById('tooltipContent');
-            const tooltipLabel = document.getElementById('tooltipLabel');
-            const rect = element.getBoundingClientRect();
+        function initJsonEditor(data) {
+            const container = document.getElementById('jsonEditor');
+            container.innerHTML = '';
 
-            // 显示标签和置信度
-            const score = box.score ? (box.score * 100).toFixed(1) + '%' : 'N/A';
-            tooltipLabel.textContent = `${label.toUpperCase()} #${index + 1} (置信度: ${score})`;
-
-            // 如果有提取的图片，显示图片
-            if (box.extracted_image) {
-                tooltipContent.innerHTML = `<img src="/image/${box.extracted_image}" style="max-width: 100%; border-radius: 4px;">`;
-            } else if (box.ocr_text) {
-                // 如果是 HTML 表格内容，渲染表格
-                if (box.ocr_text.trim().startsWith('<table')) {
-                    tooltipContent.innerHTML = box.ocr_text;
-                } else {
-                    tooltipContent.textContent = box.ocr_text;
-                }
-            } else if (box.ocr_error) {
-                tooltipContent.innerHTML = `<span style="color: #ff6b6b;">OCR 失败: ${box.ocr_error}</span>`;
-            } else if (box.extract_error) {
-                tooltipContent.innerHTML = `<span style="color: #ff6b6b;">图片提取失败: ${box.extract_error}</span>`;
-            } else {
-                tooltipContent.textContent = '无内容';
+            if (jsonEditor) {
+                jsonEditor.destroy();
             }
 
-            // 定位 tooltip
-            let left = rect.right + 10;
-            let top = rect.top;
+            jsonEditor = new JSONEditor(container, {
+                mode: 'view',
+                modes: ['view']
+            });
 
-            // 边界检测
-            if (left + 400 > window.innerWidth) {
-                left = rect.left - 410;
-            }
-            if (top + 300 > window.innerHeight) {
-                top = window.innerHeight - 310;
-            }
-
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
-            tooltip.classList.add('show');
-
-            // 点击其他地方关闭
-            setTimeout(() => {
-                document.addEventListener('click', hideTooltip, { once: true });
-            }, 0);
+            jsonEditor.set(data);
         }
 
-        function hideTooltip() {
-            document.getElementById('tooltip').classList.remove('show');
-        }
-
-        function toggleImage() {
-            const img = document.getElementById('mainImage');
-            const btn = document.getElementById('toggleBtn');
-
-            if (showingAnnotated) {
-                img.src = originalImageSrc;
-                btn.textContent = '查看版面分析图';
-                btn.classList.remove('active');
-            } else {
-                img.src = annotatedImageSrc;
-                btn.textContent = '查看原图';
-                btn.classList.add('active');
-            }
-            showingAnnotated = !showingAnnotated;
-        }
-
-        // 页面加载时根据 ID 加载数据
-        window.onload = () => {
+        window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
             const recId = params.get('id');
 
@@ -416,39 +351,247 @@
                 return;
             }
 
-            loadById(recId);
-        };
-
-        async function loadById(recId) {
             try {
                 const res = await fetch(`/view/${recId}`);
                 if (!res.ok) throw new Error('识别结果不存在');
 
                 const data = await res.json();
-                document.getElementById('recordInfo').textContent = `${data.image_name} | ID: ${data.id} | 状态: ${data.status === 'success' ? '成功' : data.status}`;
+                currentData = data;
+
+                document.getElementById('recordInfo').textContent =
+                    `${data.image_name} | ID: ${data.id} | 类型: ${data.rec_type === 'markdown' ? 'Markdown' : 'OCR'} | 状态: ${data.status === 'success' ? '成功' : data.status}`;
                 document.getElementById('infoBar').style.display = 'block';
 
-                // 存储图片路径
-                originalImageSrc = `/image/${encodeURIComponent(data.image_path)}`;
-                annotatedImageSrc = data.annotated_image_path
+                // 更新页面标题
+                document.title = data.rec_type === 'markdown' ? 'Markdown 识别结果' : 'OCR 布局可视化';
+
+                // 设置图片
+                const originalSrc = `/image/${encodeURIComponent(data.image_path)}`;
+                const annotatedSrc = data.annotated_image_path
                     ? `/image/${encodeURIComponent(data.annotated_image_path)}`
-                    : originalImageSrc;
+                    : originalSrc;
 
-                // 默认显示版面分析图
-                document.getElementById('mainImage').src = annotatedImageSrc;
-                document.getElementById('toggleBtn').textContent = '查看原图';
-                document.getElementById('toggleBtn').classList.add('active');
-                showingAnnotated = true;
+                document.getElementById('imgOriginal').src = originalSrc;
+                document.getElementById('imgAnnotated').src = annotatedSrc;
+                document.getElementById('imgJson').src = originalSrc;
 
-                document.getElementById('mainImage').onload = () => {
-                    document.getElementById('viewer').style.display = 'flex';
-                    imageScale = document.getElementById('mainImage').offsetWidth / document.getElementById('mainImage').naturalWidth;
-                    renderBoxes(data.result_json);
+                // 渲染 boxes (兼容 OCR 和 markdown 两种格式)
+                const boxes = data.rec_type === 'markdown'
+                    ? (data.result_json?.boxes || [])
+                    : (data.result_json?.[0]?.res?.boxes || []);
+
+                // 使用 ResizeObserver 监听图片尺寸变化
+                const imgJson = document.getElementById('imgJson');
+                let resizeObserver = null;
+
+                const setupRender = () => {
+                    // 清理旧的 observer
+                    if (resizeObserver) {
+                        resizeObserver.disconnect();
+                    }
+
+                    // 使用 ResizeObserver 监听图片 wrapper 的尺寸变化
+                    resizeObserver = new ResizeObserver(() => {
+                        if (boxes.length > 0) {
+                            renderBoxes(boxes);
+                        }
+                    });
+
+                    const tabJson = document.getElementById('tabJson');
+                    if (tabJson) {
+                        resizeObserver.observe(tabJson);
+                    }
                 };
+
+                // 确保图片加载完成后再初始化
+                if (imgJson.complete && imgJson.naturalWidth > 0) {
+                    setupRender();
+                    renderBoxes(boxes);
+                } else {
+                    imgJson.onload = () => {
+                        setupRender();
+                        renderBoxes(boxes);
+                    };
+                }
+
+                // 渲染 OCR 内容
+                const ocrContent = document.getElementById('ocrContent');
+                if (boxes.length === 0) {
+                    ocrContent.innerHTML = '<div style="color:#888;text-align:center;padding:40px;">无识别结果</div>';
+                } else {
+                    ocrContent.innerHTML = boxes.map((box, i) => {
+                        const label = box.label || 'unknown';
+                        const score = box.score ? (box.score * 100).toFixed(1) + '%' : 'N/A';
+                        let content = '';
+                        if (box.extracted_image) {
+                            content = `<img src="/image/${box.extracted_image}" style="max-width:100%;border-radius:4px;">`;
+                        } else if (box.ocr_text) {
+                            content = box.ocr_text.trim().startsWith('<table') ? box.ocr_text : `<div style="white-space:pre-wrap;">${box.ocr_text}</div>`;
+                        } else if (box.ocr_error) {
+                            content = `<span style="color:#ff6b6b;">失败: ${box.ocr_error}</span>`;
+                        }
+                        return `
+                            <div class="ocr-item" data-index="${i}" style="background:#f8f9fa;padding:12px;border-radius:8px;margin-bottom:10px;cursor:pointer;">
+                                <div style="color:#0066cc;font-weight:bold;margin-bottom:8px;">#${i+1} ${label.toUpperCase()} (${score})</div>
+                                ${content}
+                            </div>`;
+                    }).join('');
+
+                    // 添加 hover 高亮事件
+                    document.querySelectorAll('.ocr-item').forEach(item => {
+                        item.addEventListener('mouseenter', () => {
+                            const idx = item.dataset.index;
+                            const boxEl = document.getElementById(`box-${idx}`);
+                            if (boxEl) boxEl.classList.add('highlight');
+                        });
+                        item.addEventListener('mouseleave', () => {
+                            const idx = item.dataset.index;
+                            const boxEl = document.getElementById(`box-${idx}`);
+                            if (boxEl) boxEl.classList.remove('highlight');
+                        });
+                    });
+                }
+
+                // 初始化 JSON viewer
+                initJsonEditor(data.result_json);
+
+                // 如果是 markdown 类型，添加 Markdown tabs
+                if (data.rec_type === 'markdown') {
+                    const tabBar = document.getElementById('contentTabBar');
+                    tabBar.innerHTML = `
+                        <button class="tab-btn active" data-tab="ocr">识别结果</button>
+                        <button class="tab-btn" data-tab="jsonview">JSON</button>
+                        <button class="tab-btn" data-tab="mdRaw">Markdown原文</button>
+                        <button class="tab-btn" data-tab="mdRendered">渲染效果</button>
+                    `;
+
+                    // 重新绑定 tab 切换事件
+                    tabBar.querySelectorAll('.tab-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const tabName = btn.dataset.tab;
+                            tabBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            tabBar.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                            const contentId = 'tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+                            document.getElementById(contentId).classList.add('active');
+                        });
+                    });
+
+                    // 渲染 Markdown 内容
+                    let mdText = data.result_json?.markdown || '';
+                    // 修正图片路径（加上 /image/ 前缀）
+                    mdText = mdText.replace(/!\[([^\]]*)\]\((?!\/|http:\/\/)([^)]+)\)/g, '![$1](/image/$2)');
+                    document.getElementById('mdRawContent').textContent = mdText;
+
+                    if (mdText) {
+                        // 预处理：把字面量 \n 替换成真正的换行
+                        mdText = mdText.replace(/\\n/g, '\n');
+
+                        // 把 \\ 替换成 \ (LaTeX 命令需要单个反斜杠)
+                        mdText = mdText.replace(/\\\\/g, '\\');
+
+                        // 修复被 glm-ocr 拆分的空公式对（如 $$\n$$ 成对删除）
+                        mdText = mdText.replace(/(?:(?!\$\$)[\s\S])*?\$\$(?!\s*\$\$)[\s\n]*\$\$/g, (match) => {
+                            // match 是从第一个 $$ 到第二个 $$ 之间的内容（包含分隔符）
+                            // 检查中间是否只有空白/换行（无实际内容）
+                            const inner = match.replace(/^\$\$|\$\$$/g, '');
+                            if (inner.trim().length === 0) return '';
+                            return '$$' + inner.trim() + '$$';
+                        });
+
+                        // 给孤立的 LaTeX 公式行加上 $$ (因为 glm-ocr 识别时可能丢失了)
+                        // 以 \ 开头或包含 \left\right\begin\end\sqrt\frac 等的行，很可能是公式
+                        mdText = mdText.replace(/^([^$]*\\[^$]*)$/gm, (match) => {
+                            return '$$' + match.trim() + '$$';
+                        });
+
+                        // 销毁旧的 Vditor 实例
+                        if (window.mdVditor) {
+                            window.mdVditor.destroy();
+                        }
+
+                        // 使用 Vditor 渲染 Markdown
+                        Vditor.preview(document.getElementById('mdRenderedContent'), mdText, {
+                            cdn: 'https://cdn.jsdelivr.net/npm/vditor@3.10.9',
+                            theme: 'light'
+                        });
+
+                        // 渲染完成后，添加下载 PDF 按钮
+                        setTimeout(() => {
+                            const container = document.getElementById('mdRenderedContent');
+                            if (document.getElementById('vditorDownloadPdf')) return;
+                            const toolbar = document.createElement('div');
+                            toolbar.style.cssText = 'padding:8px 12px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:flex-end;gap:8px;background:#fff;';
+                            toolbar.innerHTML = `
+                                <button id="vditorDownloadMd" style="background:#27ae60;color:#fff;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">下载 Markdown</button>
+                                <button id="vditorDownloadPdf" style="background:#0066cc;color:#fff;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">下载 PDF</button>
+                            `;
+                            container.parentElement.insertBefore(toolbar, container);
+
+                            // 下载 Markdown 原文（图片路径替换为完整 URL）
+                            document.getElementById('vditorDownloadMd').addEventListener('click', () => {
+                                const mdWithFullPath = mdText.replace(/\!\[([^\]]*)\]\(\/image\//g, `![$1](${window.location.origin}/image/`);
+                                const blob = new Blob([mdWithFullPath], { type: 'text/markdown;charset=utf-8' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = (currentData?.image_name || 'markdown') + '.md';
+                                a.click();
+                                URL.revokeObjectURL(url);
+                            });
+
+                            document.getElementById('vditorDownloadPdf').addEventListener('click', async () => {
+                                const btn = document.getElementById('vditorDownloadPdf');
+                                btn.textContent = '生成中...';
+                                btn.disabled = true;
+
+                                // 等待图片加载完成
+                                const imgs = container.querySelectorAll('img');
+                                await Promise.all(Array.from(imgs).map(img => {
+                                    if (img.complete) return Promise.resolve();
+                                    return new Promise(resolve => { img.onload = img.onerror = resolve; });
+                                }));
+
+                                if (!window.html2pdf) {
+                                    const script = document.createElement('script');
+                                    script.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+                                    document.head.appendChild(script);
+                                    await new Promise(resolve => script.onload = resolve);
+                                }
+
+                                const opt = {
+                                    margin: 8,
+                                    filename: (currentData?.image_name || 'markdown') + '.pdf',
+                                    image: { type: 'jpeg', quality: 0.98 },
+                                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                                };
+
+                                try {
+                                    await html2pdf().set(opt).from(container).save();
+                                } finally {
+                                    btn.textContent = '下载 PDF';
+                                    btn.disabled = false;
+                                }
+                            });
+                        }, 300);
+                    }
+                }
+
+                document.getElementById('mainViewer').style.display = 'flex';
+
             } catch (err) {
                 alert('加载失败: ' + err);
             }
-        }
+        };
+
+        // 窗口缩放时重新渲染 boxes
+        window.addEventListener('resize', () => {
+            if (currentBoxes.length > 0) {
+                renderBoxes(currentBoxes);
+            }
+        });
     </script>
 </body>
 </html>

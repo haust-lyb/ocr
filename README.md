@@ -34,21 +34,15 @@
 
 ### 版面分析示例
 
-<!--
 ![版面分析示例](docs/images/layout-analysis-demo.png)
--->
 
 ### OCR 识别示例
 
-<!--
 ![OCR 识别示例](docs/images/ocr-result-demo.png)
--->
 
 ### Markdown 输出示例
 
-<!--
 ![Markdown 输出示例](docs/images/markdown-output-demo.png)
--->
 
 ## 项目结构
 

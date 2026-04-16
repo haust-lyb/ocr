@@ -1,0 +1,28 @@
+FROM paddlepaddle/paddle:3.3.1-gpu-cuda13.0-cudnn9.13
+
+WORKDIR /app
+
+# 设置 pip 国内源（加速）
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 先只拷贝依赖文件（利用缓存）
+COPY requirements.txt ./
+
+# 安装依赖（开启缓存）
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --break-system-packages -r requirements.txt
+
+# 拷贝模型（这一层变化频率低）
+COPY ./official_models/ /root/.paddlex/official_models/
+
+# 再拷贝代码（避免代码变动导致依赖重装）
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# 构建：
+#   DOCKER_BUILDKIT=1 docker build -f Dockerfile.gpu -t ocr-server:gpu .
+# 运行：
+#   docker run --rm --gpus '"device=0"' -p 7788:8000 ocr-server:gpu

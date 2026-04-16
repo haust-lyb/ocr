@@ -5,7 +5,7 @@ import io
 import base64
 
 OLLAMA_MODEL = "glm-ocr:latest"
-OLLAMA_REORDER_MODEL = "gpt-oss:20b"  # 重排序模型，如不需要请设为空字符串 ""
+OLLAMA_REORDER_MODEL = ""  # 重排序模型，如不需要请设为空字符串 ""
 #OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://10.15.15.164:11434")
 

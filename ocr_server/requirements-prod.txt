@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-multipart
+
+ollama
+paddlex
+
+opencv-contrib-python
+pypdfium2
+shapely
+
+pillow
+lxml
+pyclipper
+scipy

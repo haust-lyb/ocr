@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCR 布局可视化</title>
+    <title>识别结果查看器 - OCR 系统</title>
     <link href="https://cdn.jsdelivr.net/npm/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsoneditor/dist/jsoneditor.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.10.9/dist/index.css" />
@@ -12,26 +12,40 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f5f7fa;
+            background: #f0f2f5;
             color: #333;
-            min-height: 100vh;
-            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
-        h1 { text-align: center; margin-bottom: 20px; color: #0066cc; }
-
-        .info-bar {
-            display: none;
-            background: #fff;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        /* 统一顶栏 */
+        .topbar {
+            display: flex; align-items: center;
+            height: 52px; padding: 0 28px; flex-shrink: 0;
+            background: #fff; border-bottom: 1px solid #e8e8e8;
+            z-index: 100;
         }
-        .info-bar a { color: #0066cc; margin-left: 20px; }
+        .topbar-logo {
+            font-size: 1em; font-weight: 700; color: #0066cc;
+            text-decoration: none; white-space: nowrap;
+        }
+        .topbar-logo:hover { color: #0052a3; }
+        .topbar-sep { color: #ccc; margin: 0 10px; }
+        .topbar-page { font-size: 0.9em; color: #555; font-weight: 600; }
+        .topbar-meta { font-size: 0.8em; color: #aaa; margin-left: 16px; }
+        .topbar-spacer { flex: 1; }
+        .topbar-btn {
+            padding: 6px 16px; border-radius: 6px; font-size: 0.85em; font-weight: 600;
+            text-decoration: none; border: 1px solid #d0d0d0; color: #555;
+            background: transparent; transition: all 0.2s; margin-left: 8px;
+        }
+        .topbar-btn:hover { border-color: #0066cc; color: #0066cc; }
+        /* embed 模式：隐藏顶栏，body 背景透明 */
+        body.embed .topbar { display: none; }
+        body.embed { background: #fff; }
 
-        .main-viewer { display: flex; gap: 20px; height: calc(100vh - 120px); }
+        .main-viewer { display: flex; gap: 16px; flex: 1; overflow: hidden; padding: 16px 20px; }
         .panel {
             background: #fff;
             border-radius: 12px;
@@ -179,17 +193,17 @@
         /* OCR item style in JS */
         .ocr-item { background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
     </style>
+    <script src="/static/mobile-check.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>OCR 布局可视化</h1>
+    <div class="topbar">
+        <a href="/" class="topbar-logo">智能版面识别 OCR 系统</a>
+        <span class="topbar-sep">/</span>
+        <span class="topbar-page" id="topbarPage">识别结果</span>
+        <span class="topbar-meta" id="topbarMeta"></span>
+    </div>
 
-        <div class="info-bar" id="infoBar">
-            <span id="recordInfo" style="color: #666;"></span>
-            <a href="/console">返回列表</a>
-        </div>
-
-        <div class="main-viewer" id="mainViewer" style="display: none;">
+    <div class="main-viewer" id="mainViewer" style="display: none;">
             <!-- 左侧：图片面板 -->
             <div class="panel image-panel">
                 <div class="tab-bar">
@@ -233,6 +247,10 @@
                 </div>
                 <div id="tabJsonview" class="tab-content">
                     <div id="jsonEditor"></div>
+                    <div style="padding:8px 10px;display:flex;gap:8px;border-top:1px solid #e0e0e0;background:#fafafa;">
+                        <button onclick="formatJson()" style="padding:6px 16px;background:#0066cc;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;">格式化</button>
+                        <button onclick="validateJson()" style="padding:6px 16px;background:#27ae60;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;">校验</button>
+                    </div>
                 </div>
                 <div id="tabMdRaw" class="tab-content">
                     <div id="mdRawContent" class="raw-content"></div>
@@ -242,9 +260,12 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <script>
+        if (new URLSearchParams(location.search).get('embed') === '1') {
+            document.body.classList.add('embed');
+        }
+
         let currentData = null;
         let imageScale = 1;
         let jsonEditor = null;
@@ -335,11 +356,43 @@
             }
 
             jsonEditor = new JSONEditor(container, {
-                mode: 'view',
-                modes: ['view']
+                mode: 'code',
+                modes: ['tree', 'form', 'code', 'text', 'view'],
+                onEditable: function(node) {
+                    return true; // 允许编辑
+                },
+                onError: function(err) {
+                    alert('JSON 错误: ' + err.toString());
+                }
             });
 
-            jsonEditor.set(data);
+            try {
+                jsonEditor.set(data);
+            } catch (e) {
+                console.error('JSON set error:', e);
+            }
+        }
+
+        // 格式化 JSON 按钮功能（通过重新设置实现格式化）
+        function formatJson() {
+            if (!jsonEditor) return;
+            try {
+                const json = jsonEditor.get();
+                jsonEditor.set(json);
+            } catch (e) {
+                alert('格式化失败: ' + e.message);
+            }
+        }
+
+        // 校验 JSON 按钮功能
+        function validateJson() {
+            if (!jsonEditor) return;
+            try {
+                const json = jsonEditor.get();
+                alert('JSON 格式正确！');
+            } catch (e) {
+                alert('JSON 格式错误: ' + e.message);
+            }
         }
 
         window.onload = async () => {
@@ -358,12 +411,11 @@
                 const data = await res.json();
                 currentData = data;
 
-                document.getElementById('recordInfo').textContent =
-                    `${data.image_name} | ID: ${data.id} | 类型: ${data.rec_type === 'markdown' ? 'Markdown' : 'OCR'} | 状态: ${data.status === 'success' ? '成功' : data.status}`;
-                document.getElementById('infoBar').style.display = 'block';
-
-                // 更新页面标题
-                document.title = data.rec_type === 'markdown' ? 'Markdown 识别结果' : 'OCR 布局可视化';
+                const typeLabel = data.rec_type === 'markdown' ? 'Markdown 识别' : 'OCR 识别';
+                document.getElementById('topbarPage').textContent = typeLabel;
+                document.getElementById('topbarMeta').textContent =
+                    `${data.image_name}  ·  ID: ${data.id}  ·  ${new Date(data.created_at).toLocaleString('zh-CN')}`;
+                document.title = typeLabel + ' - OCR 系统';
 
                 // 设置图片
                 const originalSrc = `/image/${encodeURIComponent(data.image_path)}`;

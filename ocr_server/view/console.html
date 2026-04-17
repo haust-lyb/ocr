@@ -3,156 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>识别记录 - OCR 控制台</title>
+    <title>历史识别记录 - OCR 系统</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f5f7fa;
+            background: #f0f2f5;
             color: #333;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .header {
+            height: 100vh;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #e0e0e0;
+            flex-direction: column;
+            overflow: hidden;
         }
-        h1 { color: #0066cc; }
-        .btn {
-            background: #0066cc;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
+
+        /* 统一顶栏 */
+        .topbar {
+            display: flex; align-items: center;
+            height: 52px; padding: 0 28px; flex-shrink: 0;
+            background: #fff; border-bottom: 1px solid #e8e8e8;
+            z-index: 10;
         }
-        .btn:hover { background: #0052a3; }
-        .card {
+        .topbar-logo {
+            font-size: 1em; font-weight: 700; color: #0066cc;
+            text-decoration: none; white-space: nowrap;
+        }
+        .topbar-logo:hover { color: #0052a3; }
+        .topbar-sep { color: #ccc; margin: 0 10px; }
+        .topbar-page { font-size: 0.9em; color: #555; font-weight: 600; }
+        .topbar-spacer { flex: 1; }
+        .topbar-btn {
+            padding: 6px 16px; border-radius: 6px; font-size: 0.85em; font-weight: 600;
+            text-decoration: none; border: 1px solid #d0d0d0; color: #555;
+            background: transparent; transition: all 0.2s; margin-left: 8px; cursor: pointer;
+        }
+        .topbar-btn:hover { border-color: #0066cc; color: #0066cc; }
+
+        /* 主体 */
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* 左侧列表 */
+        .list-panel {
+            width: 320px;
+            flex-shrink: 0;
             background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
+            border-right: 1px solid #e8e8e8;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .list-header {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            flex-shrink: 0;
+        }
+        .list-header-row {
+            display: flex;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
-        .info h3 { color: #333; margin-bottom: 5px; }
-        .info p { color: #666; font-size: 0.9em; }
-        .status {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: bold;
+        .list-title { font-size: 0.88em; font-weight: 700; color: #888; letter-spacing: 0.05em; text-transform: uppercase; }
+        .list-count { font-size: 0.78em; color: #bbb; }
+        /* 搜索/筛选 */
+        .filter-row { display: flex; gap: 6px; }
+        .filter-btn {
+            font-size: 0.72em; padding: 3px 10px; border-radius: 12px;
+            border: 1.5px solid #e0e0e0; background: #fff; color: #888;
+            cursor: pointer; font-weight: 600; transition: all 0.15s;
         }
-        .status.success { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
-        .status.error { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
-        .status.pending { background: rgba(155, 89, 182, 0.15); color: #9b59b6; }
-        .view-btn {
-            background: #f39c12;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        .view-btn:hover { background: #d68910; }
-        .empty { text-align: center; color: #888; padding: 60px; }
-        .loading { text-align: center; color: #888; padding: 60px; }
-        .type-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        .type-badge.ocr { background: rgba(0, 102, 204, 0.15); color: #0066cc; }
-        .type-badge.markdown { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
-        .delete-btn {
-            background: rgba(231, 76, 60, 0.15);
-            color: #e74c3c;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+        .filter-btn:hover  { border-color: #0066cc; color: #0066cc; }
+        .filter-btn.active { border-color: #0066cc; background: #0066cc; color: #fff; }
+        .filter-btn.active.md     { border-color: #27ae60; background: #27ae60; }
+        .filter-btn.active.extract{ border-color: #8e44ad; background: #8e44ad; }
+
+        .list-body { flex: 1; overflow-y: auto; padding: 8px 8px; }
+
+        /* 记录卡片 */
+        .rec-card {
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 6px;
             cursor: pointer;
-            font-size: 0.9em;
-            font-weight: bold;
+            border: 1.5px solid transparent;
+            transition: all 0.15s;
+            background: #fafafa;
+            position: relative;
         }
-        .delete-btn:hover { background: rgba(231, 76, 60, 0.3); }
-        .actions { display: flex; align-items: center; gap: 12px; }
+        .rec-card:hover { background: #f5f8ff; border-color: #dce8ff; }
+        .rec-card.active {
+            background: #f0f5ff;
+            border-color: #c0d4ff;
+        }
+        .rec-card.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 3px; height: 60%;
+            background: #0066cc;
+            border-radius: 0 3px 3px 0;
+        }
+        .rec-card-top {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 6px;
+        }
+        .type-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 8px;
+            font-size: 0.7em; font-weight: 700; flex-shrink: 0;
+        }
+        .type-badge.ocr      { background: rgba(0,102,204,0.1);  color: #0066cc; }
+        .type-badge.markdown { background: rgba(39,174,96,0.1);   color: #27ae60; }
+        .type-badge.extract  { background: rgba(142,68,173,0.1);  color: #8e44ad; }
+        .rec-name {
+            font-size: 0.87em; font-weight: 600; color: #222;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            flex: 1; min-width: 0;
+        }
+        .rec-status-dot {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+        }
+        .rec-status-dot.success { background: #27ae60; }
+        .rec-status-dot.error   { background: #e74c3c; }
+        .rec-status-dot.pending { background: #9b59b6; }
+        .rec-card-bottom {
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .rec-time { font-size: 0.75em; color: #bbb; }
+        .rec-id   { font-size: 0.72em; color: #ccc; font-family: monospace; }
+        .del-btn {
+            display: none;
+            font-size: 0.72em; color: #e74c3c; background: rgba(231,76,60,0.08);
+            border: none; border-radius: 4px; padding: 2px 7px;
+            cursor: pointer; font-weight: 600; transition: background 0.15s;
+        }
+        .del-btn:hover { background: rgba(231,76,60,0.2); }
+        .rec-card:hover .del-btn,
+        .rec-card.active .del-btn { display: inline-block; }
+
+        /* 空/加载 */
+        .list-empty { text-align: center; color: #ccc; padding: 60px 20px; font-size: 0.9em; }
+
+        /* 右侧预览区 */
+        .preview-panel {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #f0f2f5;
+        }
+        .preview-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            gap: 12px;
+        }
+        .preview-empty .icon { font-size: 48px; }
+        .preview-empty p { font-size: 0.9em; }
+        .preview-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            display: none;
+        }
+        .preview-frame.show { display: block; }
     </style>
+    <script src="/static/mobile-check.js"></script>
 </head>
 <body>
-    <div class="header">
-        <h1>识别记录</h1>
-        <a href="/" class="btn">返回首页</a>
+    <!-- 顶栏 -->
+    <div class="topbar">
+        <a href="/" class="topbar-logo">智能版面识别 OCR 系统</a>
+        <span class="topbar-sep">/</span>
+        <span class="topbar-page">历史识别记录</span>
     </div>
 
-    <div id="records">
-        <div class="loading">加载中...</div>
+    <div class="workspace">
+        <!-- 左侧列表 -->
+        <div class="list-panel">
+            <div class="list-header">
+                <div class="list-header-row">
+                    <span class="list-title">识别记录</span>
+                    <span class="list-count" id="listCount"></span>
+                </div>
+                <div class="filter-row" id="filterRow">
+                    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+                    <button class="filter-btn" data-filter="ocr" onclick="setFilter('ocr')">OCR</button>
+                    <button class="filter-btn" data-filter="markdown" onclick="setFilter('markdown')">Markdown</button>
+                    <button class="filter-btn" data-filter="extract" onclick="setFilter('extract')">结构化</button>
+                </div>
+            </div>
+            <div class="list-body" id="listBody">
+                <div class="list-empty">加载中…</div>
+            </div>
+        </div>
+
+        <!-- 右侧预览 -->
+        <div class="preview-panel" id="previewPanel">
+            <div class="preview-empty" id="previewEmpty">
+                <div class="icon">🗂️</div>
+                <p>点击左侧记录查看详情</p>
+            </div>
+            <iframe class="preview-frame" id="previewFrame" src="about:blank"></iframe>
+        </div>
     </div>
 
     <script>
+        let allRecords = [];
+        let currentFilter = 'all';
+        let currentId = null;
+
+        const typeLabel = { ocr: 'OCR', markdown: 'Markdown', extract: '结构化提取' };
+        const viewerUrl  = r => r.rec_type === 'extract'
+            ? `/extract-viewer?id=${r.id}&embed=1`
+            : `/viewer?id=${r.id}&embed=1`;
+
+        // ── 加载记录 ──
         async function loadRecords() {
             try {
-                const res = await fetch('/list');
-                const data = await res.json();
-                const container = document.getElementById('records');
+                const data = await fetch('/list').then(r => r.json());
+                allRecords = data.records || [];
+                renderList();
+                document.getElementById('listCount').textContent = allRecords.length + ' 条';
+            } catch (e) {
+                document.getElementById('listBody').innerHTML =
+                    `<div class="list-empty">加载失败: ${e.message}</div>`;
+            }
+        }
 
-                if (!data.records || data.records.length === 0) {
-                    container.innerHTML = '<div class="empty">暂无识别记录</div>';
-                    return;
-                }
+        // ── 渲染列表 ──
+        function renderList() {
+            const filtered = currentFilter === 'all'
+                ? allRecords
+                : allRecords.filter(r => r.rec_type === currentFilter);
 
-                container.innerHTML = data.records.map(r => {
-                    const viewUrl = `/viewer?id=${r.id}`;
-                    const typeLabel = r.rec_type === 'markdown' ? 'Markdown' : 'OCR';
-                    return `
-                    <div class="card" id="card-${r.id}">
-                        <div class="info">
-                            <h3>${r.image_name || '未知文件'}</h3>
-                            <p><span class="type-badge ${r.rec_type}">${typeLabel}</span>ID: ${r.id} | 时间: ${new Date(r.created_at).toLocaleString('zh-CN')}</p>
-                        </div>
-                        <div class="actions">
-                            <span class="status ${r.status}">${r.status === 'success' ? '成功' : r.status === 'error' ? '失败' : '处理中'}</span>
-                            <a href="${viewUrl}" class="view-btn" target="_blank">查看详情</a>
-                            <button class="delete-btn" onclick="deleteRecord('${r.id}')">删除</button>
-                        </div>
+            const body = document.getElementById('listBody');
+            if (!filtered.length) {
+                body.innerHTML = '<div class="list-empty">暂无记录</div>';
+                return;
+            }
+
+            body.innerHTML = filtered.map(r => {
+                const label = typeLabel[r.rec_type] || r.rec_type;
+                const time  = new Date(r.created_at).toLocaleString('zh-CN', {
+                    month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                return `
+                <div class="rec-card${r.id === currentId ? ' active' : ''}"
+                     id="card-${r.id}"
+                     onclick="selectRecord('${r.id}', '${r.rec_type}')">
+                    <div class="rec-card-top">
+                        <span class="type-badge ${r.rec_type}">${label}</span>
+                        <span class="rec-name" title="${r.image_name || ''}">${r.image_name || '未知文件'}</span>
+                        <span class="rec-status-dot ${r.status}"></span>
                     </div>
-                `}).join('');
-            } catch (err) {
-                document.getElementById('records').innerHTML = '<div class="empty">加载失败: ' + err + '</div>';
+                    <div class="rec-card-bottom">
+                        <span class="rec-time">${time}</span>
+                        <span class="rec-id">#${r.id}</span>
+                        <button class="del-btn" onclick="event.stopPropagation();deleteRecord('${r.id}')">删除</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── 筛选 ──
+        function setFilter(f) {
+            currentFilter = f;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const isActive = btn.dataset.filter === f;
+                btn.classList.toggle('active', isActive);
+                // 给 markdown / extract 按钮加色
+                btn.classList.toggle('md',      isActive && f === 'markdown');
+                btn.classList.toggle('extract', isActive && f === 'extract');
+            });
+            renderList();
+        }
+
+        // ── 选中记录 ──
+        function selectRecord(id, recType) {
+            // 更新激活样式
+            document.querySelectorAll('.rec-card').forEach(c => c.classList.remove('active'));
+            const card = document.getElementById('card-' + id);
+            if (card) card.classList.add('active');
+
+            currentId = id;
+
+            // 切换 iframe
+            const frame = document.getElementById('previewFrame');
+            const empty = document.getElementById('previewEmpty');
+            const url = recType === 'extract'
+                ? `/extract-viewer?id=${id}&embed=1`
+                : `/viewer?id=${id}&embed=1`;
+
+            empty.style.display = 'none';
+            frame.classList.add('show');
+            frame.src = url;
+        }
+
+        // ── 删除 ──
+        async function deleteRecord(id) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            try {
+                const data = await fetch(`/record/${id}`, { method: 'DELETE' }).then(r => r.json());
+                if (data.success) {
+                    allRecords = allRecords.filter(r => r.id !== id);
+                    document.getElementById('listCount').textContent = allRecords.length + ' 条';
+                    // 如果删的是当前预览的，重置右侧
+                    if (currentId === id) {
+                        currentId = null;
+                        document.getElementById('previewFrame').classList.remove('show');
+                        document.getElementById('previewFrame').src = 'about:blank';
+                        document.getElementById('previewEmpty').style.display = '';
+                    }
+                    renderList();
+                }
+            } catch (e) {
+                alert('删除失败: ' + e.message);
             }
         }
 
         loadRecords();
-
-        async function deleteRecord(id) {
-            if (!confirm('确定要删除这条记录吗？')) return;
-            try {
-                const res = await fetch(`/record/${id}`, { method: 'DELETE' });
-                const data = await res.json();
-                if (data.success) {
-                    const card = document.getElementById('card-' + id);
-                    if (card) card.remove();
-                    // 如果没有记录了，显示空提示
-                    if (!document.querySelector('.card')) {
-                        document.getElementById('records').innerHTML = '<div class="empty">暂无识别记录</div>';
-                    }
-                }
-            } catch (err) {
-                alert('删除失败: ' + err);
-            }
-        }
     </script>
 </body>
 </html>

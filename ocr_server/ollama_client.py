@@ -63,6 +63,32 @@ def call_glm_markdown(image, host: str = None) -> str:
     return response.message.content
 
 
+def call_glm_extract(image, prompt_json: str, host: str = None) -> str:
+    """
+    调用 Ollama glm-ocr 模型进行结构化提取
+
+    image: numpy array (cv2 format, BGR)
+    prompt_json: 用户提供的 JSON 格式提示词（字段描述 / schema）
+    返回: 模型原始输出字符串
+    """
+    prompt = (
+        "请根据以下 JSON 格式要求，从图片中提取对应字段信息，"
+        "严格按照 JSON 格式输出，不要多余解释。\n\n"
+        f"要求格式：\n{prompt_json}"
+    )
+    img_base64 = encode_image_to_base64(image)
+    client = ollama.Client(host=host or OLLAMA_HOST)
+    response = client.chat(
+        model=OLLAMA_MODEL,
+        messages=[{
+            "role": "user",
+            "content": prompt,
+            "images": [img_base64]
+        }]
+    )
+    return response.message.content
+
+
 def reorder_layout_elements(boxes: list, model: str = None) -> list:
     """
     调用 LLM 根据 OCR 结果的语义连贯性，重新调整元素顺序

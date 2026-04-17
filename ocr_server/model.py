@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # 全局加载（避免每次请求都初始化）
-:model = create_model("PP-DocLayoutV3")
+model = create_model("PP-DocLayoutV3")
 
 
 def draw_boxes_on_image(image, boxes, save_path):

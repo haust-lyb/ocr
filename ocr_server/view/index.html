@@ -8,264 +8,811 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f5f7fa;
+            background: #f0f2f5;
             color: #333;
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
-        .container { max-width: 800px; margin: 0 auto; }
-        .header {
+            height: 100vh;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
+            flex-direction: column;
+            overflow: hidden;
         }
-        h1 { color: #0066cc; font-size: 2.2em; }
+
+        /* ── 顶栏 ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            height: 56px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .topbar h1 { font-size: 1.1em; color: #0066cc; font-weight: 700; letter-spacing: -0.3px; }
+        .topbar-nav { display: flex; gap: 8px; }
         .nav-btn {
-            background: transparent;
-            color: #0066cc;
-            padding: 10px 20px;
+            padding: 6px 16px;
             border-radius: 6px;
             text-decoration: none;
-            font-weight: bold;
+            font-size: 0.85em;
+            font-weight: 600;
             border: 1px solid #0066cc;
-            transition: all 0.3s;
+            color: #0066cc;
+            background: transparent;
+            transition: all 0.2s;
         }
         .nav-btn:hover { background: #0066cc; color: #fff; }
-        .nav-btn.console { border-color: #e74c3c; color: #e74c3c; }
-        .nav-btn.console:hover { background: #e74c3c; color: #fff; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 40px; font-size: 1.1em; }
-        .card {
+        .nav-btn.history { border-color: #e74c3c; color: #e74c3c; }
+        .nav-btn.history:hover { background: #e74c3c; color: #fff; }
+
+        /* ── 主体 ── */
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── 左侧功能导航 ── */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
             background: #fff;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 25px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border-right: 1px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 16px;
+            gap: 8px;
+            overflow-y: auto;
         }
-        .upload-area {
-            border: 2px dashed #ccc;
-            border-radius: 12px;
-            padding: 50px 30px;
-            text-align: center;
-            transition: all 0.3s;
+        .sidebar-label {
+            font-size: 0.72em;
+            font-weight: 700;
+            color: #bbb;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 4px;
+        }
+        .module-item {
+            border-radius: 10px;
+            padding: 14px 16px;
             cursor: pointer;
+            transition: all 0.18s;
+            border: 1.5px solid transparent;
+            position: relative;
         }
-        .upload-area:hover { border-color: #0066cc; background: rgba(0, 102, 204, 0.03); }
-        .upload-area.dragover { border-color: #0066cc; background: rgba(0, 102, 204, 0.08); }
-        .upload-icon { font-size: 48px; margin-bottom: 15px; }
-        .upload-text { color: #333; font-size: 1.1em; }
-        .upload-hint { color: #888; font-size: 0.9em; margin-top: 10px; }
-        #fileInput { display: none; }
-        .preview-area { margin-top: 20px; text-align: center; display: none; }
-        .preview-area.show { display: block; }
-        .preview-img { max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #e0e0e0; }
-        .btn {
-            display: inline-block;
+        .module-item:hover {
+            background: #f5f8ff;
+            border-color: #dce8ff;
+        }
+        .module-item.active {
+            background: #f0f5ff;
+            border-color: #c0d4ff;
+        }
+        .module-item-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 7px;
+        }
+        .module-icon-wrap {
+            width: 36px; height: 36px;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .icon-blue   { background: #e8f0ff; }
+        .icon-teal   { background: #e6faf8; }
+        .icon-purple { background: #f3ecfa; }
+        .icon-gray   { background: #f0f0f0; }
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid #f0f0f0;
+            margin: 8px 0;
+        }
+        .module-item-title {
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #222;
+        }
+        .module-item.active .module-item-title { color: #0052cc; }
+        .module-item-desc {
+            font-size: 0.78em;
+            color: #999;
+            line-height: 1.6;
+            padding-left: 46px;
+        }
+        .module-item.active .module-item-desc { color: #6b8fcc; }
+        /* 激活指示条 */
+        .module-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 3px; height: 60%;
             background: #0066cc;
-            color: #fff;
-            padding: 12px 30px;
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* ── 右侧内容区 ── */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .content-inner {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            gap: 28px;
+            align-items: stretch;
+        }
+
+        /* 面板切换 */
+        .panel { display: none; width: 100%; }
+        .panel.active { display: contents; }
+
+        /* 左：操作区 */
+        .op-card {
+            flex: 1;
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e8e8e8;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .op-card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+        .op-card-title .icon { font-size: 20px; }
+        .op-card-title h2 { font-size: 1em; font-weight: 700; color: #222; }
+        .op-card-title .badge {
+            margin-left: auto;
+            font-size: 0.72em;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .badge-blue   { background: #e8f0ff; color: #0066cc; }
+        .badge-teal   { background: #e6faf8; color: #1aaa9c; }
+        .badge-purple { background: #f3ecfa; color: #8e44ad; }
+
+        /* 上传区 */
+        .upload-area {
+            border: 2px dashed #d8d8d8;
+            border-radius: 10px;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.22s;
+        }
+        .upload-area:hover  { border-color: #0066cc; background: rgba(0,102,204,0.025); }
+        .upload-area.dragover { border-color: #0066cc; background: rgba(0,102,204,0.06); }
+        .upload-area.has-file { border-color: #27ae60; border-style: solid; background: rgba(39,174,96,0.025); }
+        .upload-icon { font-size: 36px; margin-bottom: 10px; }
+        .upload-text { font-size: 0.9em; color: #555; }
+        .upload-hint { font-size: 0.78em; color: #c0c0c0; margin-top: 5px; }
+
+        .preview-thumb {
+            display: none;
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
             border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s;
+            border: 1px solid #ececec;
+            background: #fafafa;
+        }
+        .preview-thumb.show { display: block; }
+
+        /* JSON 输入 */
+        .field-label { font-size: 0.8em; font-weight: 600; color: #777; margin-bottom: 5px; }
+        .json-input {
+            width: 100%;
+            min-height: 120px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.82em;
+            line-height: 1.65;
+            color: #333;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .json-input:focus { border-color: #0066cc; }
+
+        /* 按钮 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9em;
             border: none;
             cursor: pointer;
-            font-size: 1em;
+            transition: all 0.22s;
+            text-decoration: none;
+            color: #fff;
+            gap: 6px;
         }
-        .btn:hover { background: #0052a3; transform: translateY(-2px); }
-        .btn:disabled { background: #aaa; cursor: not-allowed; transform: none; }
-        .btn-group { text-align: center; margin-top: 25px; display: flex; gap: 15px; justify-content: center; }
-        .btn-view { background: #27ae60; }
-        .btn-view:hover { background: #219a52; }
-        .status { text-align: center; margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
+        .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; filter: none; }
+        .btn-blue   { background: #0066cc; }
+        .btn-teal   { background: #17a99d; }
+        .btn-purple { background: #8e44ad; }
+        .btn-gray   { background: #aaa; }
+        .btn-green  { background: #27ae60; }
+        .btn-row { display: flex; gap: 10px; }
+
+        /* 状态 */
+        .status { border-radius: 8px; padding: 12px 14px; display: none; font-size: 0.87em; line-height: 1.5; }
         .status.show { display: block; }
-        .status.loading { background: rgba(0, 102, 204, 0.1); color: #0066cc; }
-        .status.success { background: rgba(39, 174, 96, 0.1); color: #27ae60; }
-        .status.error { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
-        .result-info { margin-top: 15px; font-size: 0.95em; color: #666; }
+        .status.loading { background: #f0f5ff; color: #0066cc; }
+        .status.success { background: #f0faf5; color: #1e8449; }
+        .status.error   { background: #fdf2f0; color: #c0392b; }
+        .status-text { font-weight: 600; margin-bottom: 4px; }
+        .status-meta { font-size: 0.9em; opacity: 0.85; }
+        .status-meta a { color: inherit; font-weight: 700; }
+
+        /* 右：说明 + 示例 */
+        .right-col {
+            width: 240px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .info-card, .sample-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e8e8e8;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            padding: 18px;
+        }
+        .card-label {
+            font-size: 0.72em;
+            font-weight: 700;
+            color: #bbb;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .info-list { display: flex; flex-direction: column; gap: 10px; }
+        .info-item { display: flex; gap: 9px; align-items: flex-start; }
+        .info-bullet {
+            width: 20px; height: 20px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 1px;
+        }
+        .info-item p { font-size: 0.82em; color: #666; line-height: 1.55; }
+
+        .sample-list { display: flex; flex-direction: column; gap: 8px; }
+        .sample-thumb {
+            display: flex; align-items: center; gap: 10px;
+            border: 1.5px solid #ebebeb;
+            border-radius: 8px; overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.18s, box-shadow 0.18s;
+            background: #fafafa;
+        }
+        .sample-thumb:hover { border-color: #0066cc; box-shadow: 0 0 0 3px rgba(0,102,204,0.09); }
+        .sample-thumb img { width: 68px; height: 52px; object-fit: cover; flex-shrink: 0; border-right: 1px solid #eee; }
+        .sample-info { padding: 2px 0; }
+        .sample-name { font-size: 0.82em; font-weight: 600; color: #333; margin-bottom: 2px; }
+        .sample-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+        .tag {
+            font-size: 0.68em;
+            padding: 1px 6px; border-radius: 3px; font-weight: 500;
+        }
+        .tag-blue   { background: #e8f0ff; color: #0066cc; }
+        .tag-green  { background: #eaf8f1; color: #1e8449; }
+        .tag-teal   { background: #e6faf8; color: #1aaa9c; }
+        .tag-purple { background: #f3ecfa; color: #8e44ad; }
+
+        /* JSON 编辑器 */
+        #exJsonEditor { min-height: 120px; height: 200px; border: 1.5px solid #e0e0e0; border-radius: 8px; overflow: auto; resize: vertical; }
+        .json-editor-msg { font-size: 0.75em; color: #e74c3c; margin-top: 4px; display: none; }
+        .json-editor-msg.show { display: block; }
+        .json-editor-wrap { display: flex; flex-direction: column; }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsoneditor/dist/jsoneditor.min.js"></script>
+    <script src="/static/mobile-check.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>OCR 布局识别</h1>
-            <div style="display: flex; gap: 10px;">
-                <a href="/docs" class="nav-btn">API 文档</a>
-                <a href="/console" class="nav-btn console">控制台</a>
+
+    <!-- 顶栏 -->
+    <div class="topbar">
+        <h1>智能版面识别 OCR 系统</h1>
+        <div class="topbar-nav">
+            <a href="/console" class="nav-btn history">历史识别记录</a>
+        </div>
+    </div>
+
+    <div class="workspace">
+
+        <!-- 左侧功能导航 -->
+        <div class="sidebar">
+            <div class="sidebar-label">功能模块</div>
+
+            <div class="module-item active" data-key="ocr" onclick="switchModule('ocr')">
+                <div class="module-item-head">
+                    <div class="module-icon-wrap icon-blue">🔤</div>
+                    <span class="module-item-title">OCR 识别</span>
+                </div>
+                <div class="module-item-desc">
+                    版面分析 + 全文字识别，自动检测标题、段落、表格、图片区域，按阅读顺序提取所有文字，支持中英混排。
+                </div>
             </div>
+
+            <div class="module-item" data-key="md" onclick="switchModule('md')">
+                <div class="module-item-head">
+                    <div class="module-icon-wrap icon-teal">📝</div>
+                    <span class="module-item-title">Markdown 识别</span>
+                </div>
+                <div class="module-item-desc">
+                    将文档图片转为结构化 Markdown，保留标题层级、列表与段落，输出可直接粘贴编辑的纯文本，适合文档数字化。
+                </div>
+            </div>
+
+            <div class="module-item" data-key="ex" onclick="switchModule('ex')">
+                <div class="module-item-head">
+                    <div class="module-icon-wrap icon-purple">🗃️</div>
+                    <span class="module-item-title">结构化提取</span>
+                </div>
+                <div class="module-item-desc">
+                    输入图片 + 自定义 JSON 字段描述，模型按 Schema 提取指定字段并输出结构化 JSON，适合票据、表单等信息录入场景。
+                </div>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <a href="/docs" style="text-decoration:none;">
+                <div class="module-item" style="border-color:transparent;">
+                    <div class="module-item-head">
+                        <div class="module-icon-wrap icon-gray">📖</div>
+                        <span class="module-item-title" style="color:#555;">API 文档</span>
+                    </div>
+                    <div class="module-item-desc" style="color:#bbb;">
+                        查看 OCR / Markdown / 结构化提取接口的请求参数、响应格式与调用示例。
+                    </div>
+                </div>
+            </a>
         </div>
 
-        <p class="subtitle">基于 PaddleX + Ollama glm-ocr 的文档版面分析与文字识别</p>
+        <!-- 右侧内容 -->
+        <div class="content">
+            <div class="content-inner">
 
-        <div class="card">
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📄</div>
-                <div class="upload-text">点击选择图片或拖拽图片到此处</div>
-                <div class="upload-hint">支持 PNG、JPG、JPEG 格式</div>
-            </div>
-            <input type="file" id="fileInput" accept="image/*">
+                <!-- ①  OCR -->
+                <div class="panel active" id="panel-ocr">
+                    <div class="op-card">
+                        <div class="op-card-title">
+                            <span class="icon">🔤</span>
+                            <h2>OCR 识别</h2>
+                            <span class="badge badge-blue">版面分析 + 文字提取</span>
+                        </div>
 
-            <div class="preview-area" id="previewArea">
-                <img id="previewImg" class="preview-img" src="" alt="预览">
-                <div class="btn-group">
-                    <button class="btn" id="ocrBtn" onclick="startOcr()">OCR识别</button>
-                    <button class="btn" id="mdBtn" onclick="startMarkdown()" style="background: #4ecdc4;">Markdown识别</button>
-                    <button class="btn" onclick="clearSelection()" style="background: #666;">清除</button>
+                        <div class="upload-area" id="ocrUploadArea">
+                            <div class="upload-icon">📄</div>
+                            <div class="upload-text">点击选择 / 拖拽 / Ctrl+V 粘贴图片</div>
+                            <div class="upload-hint">支持 PNG · JPG · JPEG</div>
+                        </div>
+                        <input type="file" id="ocrFileInput" accept="image/*" style="display:none">
+                        <img id="ocrThumb" class="preview-thumb" alt="预览">
+
+                        <div class="status" id="ocrStatus">
+                            <div class="status-text" id="ocrStatusText"></div>
+                            <div class="status-meta" id="ocrStatusMeta"></div>
+                        </div>
+
+                        <div class="btn-row">
+                            <button class="btn btn-blue" id="ocrBtn" onclick="startOcr()">开始识别</button>
+                            <button class="btn btn-gray" onclick="clearModule('ocr')">清除</button>
+                        </div>
+                    </div>
+
+                    <div class="right-col">
+                        <div class="info-card">
+                            <div class="card-label">功能说明</div>
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <div class="info-bullet icon-blue">🗂️</div>
+                                    <p>自动识别 15+ 种版面区域类型，包括标题、段落、表格、公式、图片等</p>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-bullet icon-blue">🔤</div>
+                                    <p>并发调用模型，对各区域文字识别，支持中英文混排场景</p>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-bullet icon-blue">🖼️</div>
+                                    <p>结果可视化查看，带色块标注的版面分析图 + 按区域展示的 OCR 文本</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sample-card">
+                            <div class="card-label">示例图片</div>
+                            <div class="sample-list">
+                                <div class="sample-thumb" onclick="loadSample('ocr','/static/samples/OCR识别demo.png','OCR识别demo')">
+                                    <img src="/static/samples/OCR识别demo.png" alt="">
+                                    <div class="sample-info">
+                                        <div class="sample-name">OCR识别</div>
+                                        <div class="sample-tags">
+                                            <span class="tag tag-blue">版面分析</span>
+                                            <span class="tag tag-blue">文字识别</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="status" id="statusArea">
-                <div id="statusText"></div>
-                <div class="result-info" id="resultInfo"></div>
-                <div class="btn-group" id="resultBtns" style="display: none; margin-top: 20px;">
-                    <a href="#" id="viewLink" class="btn btn-view" target="_blank">查看结果</a>
+                <!-- ②  Markdown -->
+                <div class="panel" id="panel-md">
+                    <div class="op-card">
+                        <div class="op-card-title">
+                            <span class="icon">📝</span>
+                            <h2>Markdown 识别</h2>
+                            <span class="badge badge-teal">文档结构化输出</span>
+                        </div>
+
+                        <div class="upload-area" id="mdUploadArea">
+                            <div class="upload-icon">📄</div>
+                            <div class="upload-text">点击选择 / 拖拽 / Ctrl+V 粘贴图片</div>
+                            <div class="upload-hint">支持 PNG · JPG · JPEG</div>
+                        </div>
+                        <input type="file" id="mdFileInput" accept="image/*" style="display:none">
+                        <img id="mdThumb" class="preview-thumb" alt="预览">
+
+                        <div class="status" id="mdStatus">
+                            <div class="status-text" id="mdStatusText"></div>
+                            <div class="status-meta" id="mdStatusMeta"></div>
+                        </div>
+
+                        <div class="btn-row">
+                            <button class="btn btn-teal" id="mdBtn" onclick="startMarkdown()">开始识别</button>
+                            <button class="btn btn-gray" onclick="clearModule('md')">清除</button>
+                        </div>
+                    </div>
+
+                    <div class="right-col">
+                        <div class="info-card">
+                            <div class="card-label">功能说明</div>
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <div class="info-bullet icon-teal">📑</div>
+                                    <p>基于版面分析结果逐区域识别，保留文档原始层级结构</p>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-bullet icon-teal">🔣</div>
+                                    <p>标题自动映射为 # / ## / ### 层级，表格转换为标准 Markdown 表格</p>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-bullet icon-teal">📋</div>
+                                    <p>输出纯文本 Markdown，可直接粘贴到 Notion、飞书、语雀等平台</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sample-card">
+                            <div class="card-label">示例图片</div>
+                            <div class="sample-list">
+                                <div class="sample-thumb" onclick="loadSample('md','/static/samples/Markdown提取demo.png','Markdown提取demo')">
+                                    <img src="/static/samples/Markdown提取demo.png" alt="">
+                                    <div class="sample-info">
+                                        <div class="sample-name">Markdown提取</div>
+                                        <div class="sample-tags">
+                                            <span class="tag tag-teal">文档结构</span>
+                                            <span class="tag tag-teal">表格</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sample-thumb" onclick="loadSample('md','/static/samples/Markdown提取demo2.png','Markdown提取demo2')">
+                                    <img src="/static/samples/Markdown提取demo2.png" alt="">
+                                    <div class="sample-info">
+                                        <div class="sample-name">Markdown提取2</div>
+                                        <div class="sample-tags">
+                                            <span class="tag tag-teal">多栏布局</span>
+                                            <span class="tag tag-green">长文档</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- ③  结构化提取 -->
+                <div class="panel" id="panel-ex">
+                    <div class="op-card">
+                        <div class="op-card-title">
+                            <span class="icon">🗃️</span>
+                            <h2>结构化提取</h2>
+                            <span class="badge badge-purple">自定义 Schema 提取</span>
+                        </div>
+
+                        <div class="upload-area" id="exUploadArea">
+                            <div class="upload-icon">📄</div>
+                            <div class="upload-text">点击选择 / 拖拽 / Ctrl+V 粘贴图片</div>
+                            <div class="upload-hint">支持 PNG · JPG · JPEG</div>
+                        </div>
+                        <input type="file" id="exFileInput" accept="image/*" style="display:none">
+                        <img id="exThumb" class="preview-thumb" alt="预览">
+
+                        <div class="json-editor-wrap">
+                            <div class="field-label">提取字段描述（JSON Schema）</div>
+                            <div id="exJsonEditor"></div>
+                            <div class="json-editor-msg" id="exJsonMsg">JSON 格式错误</div>
+                        </div>
+
+                        <div class="status" id="exStatus">
+                            <div class="status-text" id="exStatusText"></div>
+                            <div class="status-meta" id="exStatusMeta"></div>
+                        </div>
+
+                        <div class="btn-row">
+                            <button class="btn btn-purple" id="exBtn" onclick="startExtract()">开始提取</button>
+                            <button class="btn btn-gray" onclick="clearModule('ex')">清除</button>
+                        </div>
+                    </div>
+
+                    <div class="right-col">
+                        <div class="info-card">
+                            <div class="card-label">功能说明</div>
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <div class="info-bullet icon-purple">📋</div>
+                                    <p>在右侧输入框中描述你想提取的字段名和类型，用标准 JSON 格式填写</p>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-bullet icon-purple">🤖</div>
+                                    <p>模型识别图片内容后，严格按照你的 Schema 输出结构化 JSON</p>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-bullet icon-purple">🔗</div>
+                                    <p>适合票据、合同、表单等场景，提取结果可直接对接下游系统</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sample-card">
+                            <div class="card-label">示例</div>
+                            <div class="sample-list">
+                                <div class="sample-thumb" onclick="loadIdCardSample()" style="cursor:pointer;">
+                                    <img src="/static/samples/结构化提取demo.png" alt="">
+                                    <div class="sample-info">
+                                        <div class="sample-name">身份证</div>
+                                        <div class="sample-tags">
+                                            <span class="tag tag-purple">图片+Schema</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <script>
-        let selectedFile = null;
+        // ── 模块切换 ──
+        const modules = ['ocr', 'md', 'ex'];
 
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const previewArea = document.getElementById('previewArea');
-        const previewImg = document.getElementById('previewImg');
-        const statusArea = document.getElementById('statusArea');
-        const statusText = document.getElementById('statusText');
-        const resultInfo = document.getElementById('resultInfo');
-        const resultBtns = document.getElementById('resultBtns');
-        const viewLink = document.getElementById('viewLink');
-        const ocrBtn = document.getElementById('ocrBtn');
-        const mdBtn = document.getElementById('mdBtn');
+        function switchModule(key) {
+            modules.forEach(k => {
+                const item = document.querySelector(`.module-item[data-key="${k}"]`);
+                if (item) item.classList.toggle('active', k === key);
+                document.getElementById('panel-' + k).classList.toggle('active', k === key);
+            });
+        }
 
-        uploadArea.addEventListener('click', () => fileInput.click());
+        // ── 文件 state ──
+        const state = { ocr: null, md: null, ex: null };
 
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+        // ── JSON 编辑器初始化 ──
+        let exJsonEditor = null;
+        (function initExJsonEditor() {
+            exJsonEditor = new JSONEditor(document.getElementById('exJsonEditor'), {
+                mode: 'code',
+                modes: ['tree', 'form', 'code', 'text'],
+                onEditable: function(node) { return true; },
+                onError: function(err) {
+                    document.getElementById('exJsonMsg').classList.add('show');
+                },
+                onChange: function() {
+                    document.getElementById('exJsonMsg').classList.remove('show');
+                }
+            });
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
+            // 窗口大小变化时刷新编辑器
+            window.addEventListener('resize', function() {
+                if (exJsonEditor) {
+                    exJsonEditor.aceEditor.resize();
+                }
+            });
+            // 设置默认示例
+            const defaultSchema = {
+                "姓名": "字符串",
+                "日期": "YYYY-MM-DD 格式",
+                "金额": "数字，单位元"
+            };
+            exJsonEditor.set(defaultSchema);
+        })();
 
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                handleFile(file);
+        function bindUpload(key, areaId, inputId, thumbId) {
+            const area  = document.getElementById(areaId);
+            const input = document.getElementById(inputId);
+            const thumb = document.getElementById(thumbId);
+
+            area.addEventListener('click', () => input.click());
+            area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('dragover'); });
+            area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+            area.addEventListener('drop', e => {
+                e.preventDefault(); area.classList.remove('dragover');
+                const f = e.dataTransfer.files[0];
+                if (f && f.type.startsWith('image/')) setFile(key, f, area, thumb);
+            });
+            input.addEventListener('change', e => {
+                const f = e.target.files[0];
+                if (f) setFile(key, f, area, thumb);
+            });
+        }
+
+        bindUpload('ocr', 'ocrUploadArea', 'ocrFileInput', 'ocrThumb');
+        bindUpload('md',  'mdUploadArea',  'mdFileInput',  'mdThumb');
+        bindUpload('ex',  'exUploadArea',  'exFileInput',  'exThumb');
+
+        // 全局粘贴 → 分发给当前激活模块
+        document.addEventListener('paste', e => {
+            const items = e.clipboardData && e.clipboardData.items;
+            if (!items) return;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    const f = item.getAsFile();
+                    if (!f) break;
+                    const activeKey = modules.find(k => document.getElementById('panel-' + k).classList.contains('active')) || 'ocr';
+                    const areaMap  = { ocr: 'ocrUploadArea', md: 'mdUploadArea', ex: 'exUploadArea' };
+                    const thumbMap = { ocr: 'ocrThumb',      md: 'mdThumb',      ex: 'exThumb' };
+                    setFile(activeKey, f, document.getElementById(areaMap[activeKey]), document.getElementById(thumbMap[activeKey]));
+                    break;
+                }
             }
         });
 
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) handleFile(file);
-        });
-
-        function handleFile(file) {
-            selectedFile = file;
+        function setFile(key, file, area, thumb) {
+            state[key] = file;
+            area.classList.add('has-file');
             const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImg.src = e.target.result;
-                previewArea.classList.add('show');
-                statusArea.classList.remove('show');
-                resultBtns.style.display = 'none';
-            };
+            reader.onload = e => { thumb.src = e.target.result; thumb.classList.add('show'); };
             reader.readAsDataURL(file);
         }
 
-        function clearSelection() {
-            selectedFile = null;
-            fileInput.value = '';
-            previewArea.classList.remove('show');
-            statusArea.classList.remove('show');
-            resultBtns.style.display = 'none';
+        function clearModule(key) {
+            state[key] = null;
+            const cfg = {
+                ocr: ['ocrUploadArea','ocrFileInput','ocrThumb','ocrStatus'],
+                md:  ['mdUploadArea', 'mdFileInput', 'mdThumb', 'mdStatus'],
+                ex:  ['exUploadArea', 'exFileInput', 'exThumb', 'exStatus'],
+            };
+            const [aId, iId, tId, sId] = cfg[key];
+            document.getElementById(aId).classList.remove('has-file');
+            document.getElementById(iId).value = '';
+            const t = document.getElementById(tId);
+            t.src = ''; t.classList.remove('show');
+            document.getElementById(sId).className = 'status';
+            if (key === 'ex') {
+                exJsonEditor.set({});
+                document.getElementById('exJsonMsg').classList.remove('show');
+            }
         }
 
+        async function loadSample(key, url, name) {
+            const blob = await fetch(url).then(r => r.blob());
+            const file = new File([blob], name + '.png', { type: blob.type });
+            const areaMap  = { ocr: 'ocrUploadArea', md: 'mdUploadArea', ex: 'exUploadArea' };
+            const thumbMap = { ocr: 'ocrThumb',      md: 'mdThumb',      ex: 'exThumb' };
+            setFile(key, file, document.getElementById(areaMap[key]), document.getElementById(thumbMap[key]));
+        }
+
+        function loadIdCardSample() {
+            loadSample('ex', '/static/samples/结构化提取demo.png', '结构化提取demo');
+            const idCardSchema = {
+                "姓名": "公民姓名，字符串",
+                "性别": "男或女",
+                "民族": "民族名称，如汉族",
+                "出生日期": "YYYY-MM-DD 格式",
+                "身份证号": "18位身份证号码",
+                "住址": "户籍地址",
+                "公民身份号码": "与身份证号相同"
+            };
+            exJsonEditor.set(idCardSchema);
+            document.getElementById('exJsonMsg').classList.remove('show');
+        }
+
+        function setStatus(key, cls, text, meta) {
+            const s = document.getElementById(key + 'Status');
+            s.className = 'status show ' + cls;
+            document.getElementById(key + 'StatusText').textContent = text;
+            document.getElementById(key + 'StatusMeta').innerHTML = meta || '';
+        }
+
+        // ── OCR ──
         async function startOcr() {
-            if (!selectedFile) return;
-
-            ocrBtn.disabled = true;
-            ocrBtn.textContent = '识别中...';
-            mdBtn.disabled = true;
-            statusArea.className = 'status show loading';
-            statusText.textContent = '正在版面识别，请稍候...';
-            resultInfo.textContent = '';
-            resultBtns.style.display = 'none';
-
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-
+            if (!state.ocr) { alert('请先选择图片'); return; }
+            const btn = document.getElementById('ocrBtn');
+            btn.disabled = true; btn.textContent = '识别中…';
+            setStatus('ocr', 'loading', '正在版面识别，请稍候…');
+            const fd = new FormData();
+            fd.append('file', state.ocr);
             try {
-                const res = await fetch('/ocr', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await res.json();
-
-                if (data.error) {
-                    statusArea.className = 'status show error';
-                    statusText.textContent = '识别失败: ' + data.error;
-                } else {
-                    statusArea.className = 'status show success';
-                    statusText.textContent = 'OCR识别完成！';
-                    resultInfo.innerHTML = `识别 ID: <strong>${data.id}</strong>`;
-                    viewLink.href = '/viewer?id=' + data.id;
-                    resultBtns.style.display = 'flex';
-                }
-            } catch (err) {
-                statusArea.className = 'status show error';
-                statusText.textContent = '请求失败: ' + err.message;
-            } finally {
-                ocrBtn.disabled = false;
-                ocrBtn.textContent = 'OCR识别';
-                mdBtn.disabled = false;
-            }
+                const data = await fetch('/ocr', { method: 'POST', body: fd }).then(r => r.json());
+                if (data.error) setStatus('ocr', 'error', '识别失败：' + data.error);
+                else setStatus('ocr', 'success', 'OCR 识别完成',
+                    `ID: <strong>${data.id}</strong> &nbsp;·&nbsp; <a href="/viewer?id=${data.id}" target="_blank">查看结果 →</a>`);
+            } catch (e) { setStatus('ocr', 'error', '请求失败：' + e.message); }
+            finally { btn.disabled = false; btn.textContent = '开始识别'; }
         }
 
+        // ── Markdown ──
         async function startMarkdown() {
-            if (!selectedFile) return;
-
-            ocrBtn.disabled = true;
-            mdBtn.disabled = true;
-            mdBtn.textContent = '识别中...';
-            statusArea.className = 'status show loading';
-            statusText.textContent = '正在Markdown识别，请稍候...';
-            resultInfo.textContent = '';
-            resultBtns.style.display = 'none';
-
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-
+            if (!state.md) { alert('请先选择图片'); return; }
+            const btn = document.getElementById('mdBtn');
+            btn.disabled = true; btn.textContent = '识别中…';
+            setStatus('md', 'loading', '正在 Markdown 识别，请稍候…');
+            const fd = new FormData();
+            fd.append('file', state.md);
             try {
-                const res = await fetch('/markdown', {
-                    method: 'POST',
-                    body: formData
-                });
+                const data = await fetch('/markdown', { method: 'POST', body: fd }).then(r => r.json());
+                if (data.error) setStatus('md', 'error', '识别失败：' + data.error);
+                else setStatus('md', 'success', 'Markdown 识别完成',
+                    `ID: <strong>${data.id}</strong> &nbsp;·&nbsp; <a href="/viewer?id=${data.id}" target="_blank">查看结果 →</a>`);
+            } catch (e) { setStatus('md', 'error', '请求失败：' + e.message); }
+            finally { btn.disabled = false; btn.textContent = '开始识别'; }
+        }
 
-                const data = await res.json();
-
-                if (data.error) {
-                    statusArea.className = 'status show error';
-                    statusText.textContent = '识别失败: ' + data.error;
-                } else {
-                    statusArea.className = 'status show success';
-                    statusText.textContent = 'Markdown识别完成！';
-                    resultInfo.innerHTML = `识别 ID: <strong>${data.id}</strong> | <a href="/viewer?id=${data.id}" class="btn btn-view" target="_blank">查看结果</a>`;
-                    resultBtns.style.display = 'none';
-                }
-            } catch (err) {
-                statusArea.className = 'status show error';
-                statusText.textContent = '请求失败: ' + err.message;
-            } finally {
-                ocrBtn.disabled = false;
-                mdBtn.disabled = false;
-                mdBtn.textContent = 'Markdown识别';
+        // ── 结构化提取 ──
+        async function startExtract() {
+            if (!state.ex) { alert('请先选择图片'); return; }
+            let promptJson;
+            try {
+                promptJson = exJsonEditor.get();
+                promptJson = JSON.stringify(promptJson);
+            } catch (e) {
+                document.getElementById('exJsonMsg').classList.add('show');
+                alert('请输入正确的 JSON 格式');
+                return;
             }
+            if (!promptJson || promptJson === '{}') { alert('请输入提取字段描述（JSON）'); return; }
+            const btn = document.getElementById('exBtn');
+            btn.disabled = true; btn.textContent = '提取中…';
+            setStatus('ex', 'loading', '正在结构化提取，请稍候…');
+            const fd = new FormData();
+            fd.append('file', state.ex);
+            fd.append('prompt_json', promptJson);
+            try {
+                const data = await fetch('/extract', { method: 'POST', body: fd }).then(r => r.json());
+                if (data.status === 'error') setStatus('ex', 'error', '提取失败：' + (data.error || '未知错误'));
+                else setStatus('ex', 'success', '结构化提取完成',
+                    `ID: <strong>${data.id}</strong> &nbsp;·&nbsp; <a href="/extract-viewer?id=${data.id}" target="_blank">查看结果 →</a>`);
+            } catch (e) { setStatus('ex', 'error', '请求失败：' + e.message); }
+            finally { btn.disabled = false; btn.textContent = '开始提取'; }
         }
     </script>
 </body>

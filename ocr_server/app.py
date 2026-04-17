@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -8,7 +8,7 @@ import os
 import uuid
 
 from model import run_layout
-from ollama_client import call_glm_ocr, reorder_layout_elements, OLLAMA_REORDER_MODEL
+from ollama_client import call_glm_ocr, call_glm_extract, reorder_layout_elements, OLLAMA_REORDER_MODEL
 from storage import save_recognition, get_recognition, list_recognitions, delete_recognition
 
 app = FastAPI()
@@ -45,6 +45,12 @@ async def docs():
 async def console():
     """控制台"""
     return FileResponse(os.path.join(VIEW_DIR, "console.html"))
+
+
+@app.get("/extract-viewer")
+async def extract_viewer():
+    """结构化提取查看器"""
+    return FileResponse(os.path.join(VIEW_DIR, "extract_viewer.html"))
 
 
 @app.get("/viewer")
@@ -335,6 +341,62 @@ async def markdown(file: UploadFile = File(...)):
         "image": image_filename,
         "status": status,
         "markdown": result.get("markdown")
+    }
+
+
+@app.post("/extract")
+async def extract(
+    file: UploadFile = File(...),
+    prompt_json: str = Form(...)
+):
+    """结构化提取：根据用户提供的 JSON schema，从图片中提取字段，返回识别 ID"""
+    image_bytes = await file.read()
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    image_name = file.filename or "unknown"
+    rec_id = str(uuid.uuid4())[:8]
+    image_filename = f"{rec_id}_{image_name}"
+    image_path = os.path.join(IMAGES_DIR, image_filename)
+    cv2.imwrite(image_path, img)
+
+    status = "success"
+    result = {}
+
+    try:
+        raw_output = call_glm_extract(img, prompt_json)
+        # 尝试解析为 JSON，保留原文以备查看
+        import json as _json
+        try:
+            parsed = _json.loads(raw_output)
+        except Exception:
+            # 模型输出可能包裹在 markdown 代码块中
+            import re
+            m = re.search(r'```(?:json)?\s*([\s\S]+?)\s*```', raw_output)
+            if m:
+                try:
+                    parsed = _json.loads(m.group(1))
+                except Exception:
+                    parsed = None
+            else:
+                parsed = None
+
+        result = {
+            "prompt_json": prompt_json,
+            "raw_output": raw_output,
+            "extracted": parsed,
+        }
+    except Exception as e:
+        status = "error"
+        result = {"error": str(e), "prompt_json": prompt_json}
+
+    save_recognition(rec_id, image_name, image_filename, "", result, status, rec_type="extract")
+
+    return {
+        "id": rec_id,
+        "status": status,
+        "extracted": result.get("extracted"),
+        "raw_output": result.get("raw_output"),
     }
 
 

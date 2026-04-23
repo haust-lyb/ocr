@@ -4,10 +4,10 @@ from PIL import Image
 import io
 import base64
 
-OLLAMA_MODEL = "glm-ocr:latest"
-OLLAMA_REORDER_MODEL = ""  # 重排序模型，如不需要请设为空字符串 ""
-#OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://10.15.15.164:11434")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "glm-ocr:latest")
+# 重排序模型，如不需要请设为空字符串 ""
+OLLAMA_REORDER_MODEL = os.getenv("OLLAMA_REORDER_MODEL", "")
 
 
 def encode_image_to_base64(img_array) -> str:

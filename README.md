@@ -1,6 +1,6 @@
 # OCR Layout Recognition Service
 
-基于 PaddleX PP-DocLayoutV3 + Ollama glm-ocr 的文档版面分析与 OCR 识别服务。
+基于 PaddleX PP-DocLayoutV3 + vLLM 视觉语言模型的文档版面分析与 OCR 识别服务。
 
 ## 功能特性
 
@@ -51,7 +51,7 @@ ocrserver/
 ├── ocr_server/
 │   ├── app.py              # FastAPI 主应用
 │   ├── model.py            # PaddleX 版面识别模型
-│   ├── ollama_client.py    # Ollama glm-ocr 客户端
+│   ├── vllm_client.py      # vLLM OpenAI-compatible 客户端
 │   ├── storage.py          # SQLite 存储模块
 │   ├── downloadmodel.py    # 模型下载工具
 │   ├── requirements.txt    # Python 依赖
@@ -78,14 +78,14 @@ cd ocr_server
 pip install -r requirements.txt
 ```
 
-### 2. 启动 Ollama 服务
+### 2. 启动 vLLM 服务
 
 ```bash
-# 启动 Ollama 服务
-ollama serve
-
-# 下载 glm-ocr 模型（首次使用）
-ollama pull glm-ocr:latest
+# 示例；模型名和启动参数请按所用视觉模型调整
+vllm serve /path/to/glm-ocr \
+  --served-model-name glm-ocr \
+  --host 0.0.0.0 \
+  --port 8001
 ```
 
 ### 3. 启动 OCR 服务
@@ -152,22 +152,30 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
 ## 配置说明
 
-### Ollama 服务地址
+### vLLM 服务配置
 
-默认连接 `http://10.15.15.164:11434`，可通过环境变量修改：
+客户端使用 vLLM 的 OpenAI-compatible API。默认连接 `http://127.0.0.1:8001/v1`：
 
 ```bash
-export OLLAMA_HOST=http://localhost:11434
+export VLLM_BASE_URL=http://localhost:8001/v1
+export VLLM_API_KEY=EMPTY
+export VLLM_MODEL=glm-ocr
+export VLLM_MAX_TOKENS=4096
+export VLLM_TIMEOUT=120
 ```
 
 ### 重排序模型
 
-编辑 `ollama_client.py` 中的 `OLLAMA_REORDER_MODEL` 配置，启用语义重排序功能。
+设置 `VLLM_REORDER_MODEL` 可启用语义重排序；留空则关闭：
+
+```bash
+export VLLM_REORDER_MODEL=your-text-model
+```
 
 ## 技术栈
 
 - **FastAPI** - Web 框架
 - **PaddleX PP-DocLayoutV3** - 版面分析模型
-- **Ollama glm-ocr** - 视觉语言模型 OCR
+- **vLLM OpenAI-compatible API** - 视觉语言模型 OCR
 - **SQLite** - 结果存储
 - **OpenCV** - 图像处理

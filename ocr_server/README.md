@@ -1,6 +1,6 @@
 # OCR 布局识别服务
 
-基于 PaddleX + Ollama glm-ocr 的文档版面分析与文字识别服务。
+基于 PaddleX + vLLM 视觉语言模型的文档版面分析与文字识别服务。
 
 ## 启动服务
 
@@ -20,10 +20,12 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
 ## 依赖服务
 
-- **Ollama**：确保 glm-ocr 模型已下载，服务运行中
+- **vLLM**：确保视觉模型已通过 OpenAI-compatible API 启动
   ```bash
-  ollama serve
-  ollama pull glm-ocr:latest
+  vllm serve /path/to/glm-ocr --served-model-name glm-ocr --port 8001
+  export VLLM_BASE_URL=http://127.0.0.1:8001/v1
+  export VLLM_API_KEY=EMPTY
+  export VLLM_MODEL=glm-ocr
   ```
 
 ## 访问地址
@@ -39,7 +41,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ocr_server/
 ├── app.py              # FastAPI 主应用
 ├── model.py            # PaddleX 版面识别模型
-├── ollama_client.py    # Ollama glm-ocr 客户端
+├── vllm_client.py      # vLLM OpenAI-compatible 客户端
 ├── storage.py          # SQLite 存储模块
 ├── requirements.txt    # Python 依赖
 ├── view/               # 前端页面

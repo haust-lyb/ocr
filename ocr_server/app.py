@@ -8,7 +8,7 @@ import os
 import uuid
 
 from model import run_layout
-from ollama_client import call_glm_ocr, call_glm_extract, reorder_layout_elements, OLLAMA_REORDER_MODEL
+from vllm_client import call_glm_ocr, call_glm_extract, reorder_layout_elements, VLLM_REORDER_MODEL
 from storage import save_recognition, get_recognition, list_recognitions, delete_recognition
 
 app = FastAPI()
@@ -212,8 +212,8 @@ async def ocr(file: UploadFile = File(...)):
                     box["ocr_text"] = ocr_text
 
             # 重排序（如果配置了重排序模型）
-            if OLLAMA_REORDER_MODEL:
-                print(f"使用重排序模型: {OLLAMA_REORDER_MODEL}")
+            if VLLM_REORDER_MODEL:
+                print(f"使用重排序模型: {VLLM_REORDER_MODEL}")
                 boxes = reorder_layout_elements(boxes)
 
             # 提取图片（串行）
@@ -300,8 +300,8 @@ async def markdown(file: UploadFile = File(...)):
                     box["ocr_text"] = ocr_text
 
             # 重排序（如果配置了重排序模型）
-            if OLLAMA_REORDER_MODEL:
-                print(f"使用重排序模型: {OLLAMA_REORDER_MODEL}")
+            if VLLM_REORDER_MODEL:
+                print(f"使用重排序模型: {VLLM_REORDER_MODEL}")
                 boxes = reorder_layout_elements(boxes)
 
             # 提取图片（用于 Markdown 图片引用）
